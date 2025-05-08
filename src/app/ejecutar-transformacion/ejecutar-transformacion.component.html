@@ -1,0 +1,46 @@
+<div class="col-md-6 offset-md-3">
+  <h2 class="test-center">Seleccion de archivo</h2>
+  <form class="mb-3" enctype="multipart/form-data">
+    <div class="form-group">
+      <div class="mb-3">
+        <label for="fileInput" class="form-label"
+          >Selecciona un modelo formato .xmi....</label
+        >
+        <input
+          placeholder="Selecciona un archivooooooooooooo"
+          class="form-control"
+          type="file"
+          id="fileInput"
+          (change)="onFileSelected($event)"
+        />
+      </div>
+      <div class="mb-3">
+        <label for="fileInput" class="form-label"
+          >Selecciona un metamodelo de entrada....</label
+        >
+        <input
+          placeholder="Selecciona un archivooooooooooooo"
+          class="form-control"
+          type="file"
+          id="fileInput"
+          (change)="onFileSelected($event)"
+        />
+      </div>
+      <div class="mb-3">
+        <label for="fileInput" class="form-label"
+          >Selecciona un metamodelo de salida....</label
+        >
+        <input
+          placeholder="Selecciona un archivooooooooooooo"
+          class="form-control"
+          type="file"
+          id="fileInput"
+          (change)="onFileSelected($event)"
+        />
+      </div>
+    </div>
+  </form>
+  <div>
+    <button>Realizar transformacion Go2Java</button>
+  </div>
+</div>

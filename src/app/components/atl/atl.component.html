@@ -1,0 +1,41 @@
+<!-- ATL Component HTML Template -->
+<div class="container">
+  <h2>Transformación ATL</h2>
+  <form (ngSubmit)="onSubmit()">
+    <div>
+      <label for="inModel">Modelo de entrada (.xmi):</label>
+      <input
+        type="file"
+        id="inModel"
+        (change)="onFileChange($event, 'inModel')"
+      />
+    </div>
+    <div>
+      <label for="inMetamodel">Metamodelo de entrada (.ecore):</label>
+      <input
+        type="file"
+        id="inMetamodel"
+        (change)="onFileChange($event, 'inMetamodel')"
+      />
+    </div>
+    <div>
+      <label for="outMetamodel">Metamodelo de salida (.ecore):</label>
+      <input
+        type="file"
+        id="outMetamodel"
+        (change)="onFileChange($event, 'outMetamodel')"
+      />
+    </div>
+    <div>
+      <label for="transformationType">Tipo de transformación:</label>
+      <input
+        type="text"
+        id="transformationType"
+        [(ngModel)]="transformationType"
+        name="transformationType"
+      />
+    </div>
+    <button type="submit">Transformar</button>
+  </form>
+  <p>{{ responseMessage }}</p>
+</div>
