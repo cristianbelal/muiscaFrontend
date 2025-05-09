@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { PruebaComponent } from './prueba/prueba.component';
+//import { PruebaComponent } from './prueba/prueba.component';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
