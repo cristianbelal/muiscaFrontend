@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+/*import { Component } from '@angular/core';
 import { AtlService } from '../atl.service';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
@@ -16,7 +16,7 @@ export class PruebaComponent {
 
 
 
-/*
+
 constructor(private atlService: AtlService) {}
 
 onFileChange(event: any, fileType: string): void {
