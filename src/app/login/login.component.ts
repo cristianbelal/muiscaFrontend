@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth/auth.service';
 
 @Component({
@@ -16,7 +16,7 @@ export class LoginComponent {
   password: string = '';
   errorMessage: string = '';
 
-  constructor(private authService: AuthService) {} // Inyectar el servicio
+  constructor(private authService: AuthService, private router: Router) {} // Inyectar el servicio
 
 
   onSubmit(): void {
@@ -25,7 +25,9 @@ export class LoginComponent {
 
       this.authService.login(credentials).subscribe({
         next: (response) => {
+
           console.log('Login exitoso:', response);
+          this.router.navigate(['/list']);
           // Aquí puedes manejar el token o redirigir al usuario
         },
         error: (error) => {

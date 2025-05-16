@@ -1,4 +1,4 @@
-/*import { Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders,  } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -9,7 +9,7 @@ export class AtlService {
   private apiUrl = 'http://localhost:8080/api/atl/transform'; // URL del endpoint del backend
 
   constructor(private http: HttpClient) {}
-*/
+
   /**
    * Envía los archivos y el tipo de transformación al backend.
    * @param inModel Archivo del modelo de entrada (.xmi).
@@ -18,11 +18,11 @@ export class AtlService {
    * @param transformationType Tipo de transformación.
    * @returns Observable con la respuesta del backend.
    */
-/*
+
   transform(
-    inModel: string,
-    inMetamodel: string,
-    outMetamodel: string,
+    inModel: File,
+    inMetamodel: File,
+    outMetamodel: File,
     transformationType: string
   ): Observable<any> {
     const formData = new FormData();
@@ -36,4 +36,4 @@ export class AtlService {
       responseType: 'text', // Cambia según el tipo de respuesta del backend
     });
   }
-}*/
+}

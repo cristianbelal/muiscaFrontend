@@ -1,14 +1,16 @@
-/*import { Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { AtlService } from '../../atl.service'; // Asegúrate de que la ruta sea correcta
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
+import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-atl',
   standalone: true,
   templateUrl: './atl.component.html',
   styleUrls: ['./atl.component.css'],
-  imports: [FormsModule, HttpClientModule],
+  imports: [FormsModule, RouterModule, CommonModule],
 })
 export class AtlComponent {
   inModelFile: File | null = null;
@@ -27,6 +29,12 @@ export class AtlComponent {
   }
 
   onSubmit(): void {
+    // Verifica si todos los campos están completos
+    // y si los archivos son válidos
+    console.log('inModelFile:', this.inModelFile);
+    console.log('inMetamodelFile:', this.inMetamodelFile);
+    console.log('outMetamodelFile:', this.outMetamodelFile);
+    console.log('transformationType:', this.transformationType);
     if (
       this.inModelFile &&
       this.inMetamodelFile &&
@@ -53,4 +61,4 @@ export class AtlComponent {
     }
   }
 }
-*/
+
