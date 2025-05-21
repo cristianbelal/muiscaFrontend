@@ -3,8 +3,12 @@
     class="d-flex justify-content-between align-items-center py-3 mb-4 border-bottom"
   >
     <h1 class="h4 text-primary">Proyecto Transformación ATL</h1>
-    <button class="btn btn-outline-primary" routerLink="/login">
-      Iniciar Sesión
+    <button
+      class="btn btn-outline-danger"
+      (click)="logout()"
+      routerLink="/login"
+    >
+      Cerrar Sesión
     </button>
   </header>
 
@@ -13,20 +17,43 @@
       <div class="card shadow">
         <div class="card-header bg-primary text-white text-center">
           <h3>Transformación ATL</h3>
+          <h3>Administrador</h3>
         </div>
         <div class="card-body">
           <form (ngSubmit)="onSubmit()">
-            <div class="mb-3">
-              <label for="inModel" class="form-label"
-                >Modelo de entrada (.xmi):</label
-              >
-              <input
-                type="file"
-                id="inModel"
-                class="form-control"
-                (change)="onFileChange($event, 'inModel')"
-                required
-              />
+            <div class="mb-3 row align-items-center">
+              <div class="col">
+                <label for="inModel" class="form-label mb-0"
+                  >Modelo de entrada (.xmi):</label
+                >
+                <input
+                  type="file"
+                  id="inModel"
+                  class="form-control"
+                  (change)="onFileChange($event, 'inModel')"
+                  required
+                />
+                <button type="button">Agregar</button>
+              </div>
+              <div class="col">
+                <label for="entryModel" class="form-label mb-0"
+                  >Modelos de entrada:</label
+                >
+                <select
+                  id="entryModel"
+                  name="entryModel"
+                  class="form-control"
+                  required
+                >
+                  <option value="" disabled selected>
+                    Selecciona una opción
+                  </option>
+                  <option value="Go2Java">Go2Java</option>
+                  <option value="tipo2">Transformación Tipo 2</option>
+                  <option value="tipo3">Transformación Tipo 3</option>
+                </select>
+                <button type="button">Eliminar</button>
+              </div>
             </div>
             <div class="mb-3">
               <label for="inMetamodel" class="form-label"
@@ -39,6 +66,7 @@
                 (change)="onFileChange($event, 'inMetamodel')"
                 required
               />
+              <button>Agregar</button>
             </div>
             <div class="mb-3">
               <label for="outMetamodel" class="form-label"
@@ -51,6 +79,7 @@
                 (change)="onFileChange($event, 'outMetamodel')"
                 required
               />
+              <button>Agregar</button>
             </div>
             <div class="mb-3">
               <label for="transformationType" class="form-label"

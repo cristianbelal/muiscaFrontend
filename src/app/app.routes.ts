@@ -6,7 +6,7 @@ import { ListadoTransformacionesComponent } from './listado-transformaciones/lis
 //import { PruebaComponent } from './prueba/prueba.component';
 
 export const routes: Routes = [
-  { path: '', component: AtlComponent }, // Ruta principal
+  { path: '', component: LoginComponent }, // Ruta principal
   { path: 'atl', component: AtlComponent }, // Ruta para el componente Prueba
   { path: 'list', component: ListadoTransformacionesComponent }, // Ruta para el componente Prueba
   { path: 'login', component: LoginComponent }, // Ruta para el componente Login

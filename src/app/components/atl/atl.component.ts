@@ -1,8 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AtlService } from '../../atl.service'; // Asegúrate de que la ruta sea correcta
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -12,14 +12,21 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./atl.component.css'],
   imports: [FormsModule, RouterModule, CommonModule],
 })
-export class AtlComponent {
+export class AtlComponent  implements OnInit{
   inModelFile: File | null = null;
   inMetamodelFile: File | null = null;
   outMetamodelFile: File | null = null;
   transformationType: string = '';
   responseMessage: string = '';
 
-  constructor(private atlService: AtlService) {}
+  constructor(private atlService: AtlService, private router:Router) {}
+
+  ngOnInit(): void {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      this.router.navigate(['/login']);
+    }
+  }
 
   onFileChange(event: any, fileType: string): void {
     const file = event.target.files[0];
@@ -59,6 +66,10 @@ export class AtlComponent {
     } else {
       this.responseMessage = 'Por favor, completa todos los campos.';
     }
+  }
+  logout(): void {
+    localStorage.removeItem('token'); // Elimina el token del almacenamiento local
+    this.router.navigate(['/login']); // Redirige a la página de inicio de sesión
   }
 }
 
