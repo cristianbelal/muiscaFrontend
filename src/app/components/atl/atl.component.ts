@@ -15,8 +15,12 @@ import { CommonModule } from '@angular/common';
 export class AtlComponent  implements OnInit{
   inModelFile: File | null = null;
   inMetamodelFile: File | null = null;
-  outMetamodelFile: File | null = null;
+  entryModelFile: string = "";
+  entryMetamodelFile: string = "";
+  outEntryModelFile: string = "";
+  outModelFile: File | null = null;
   transformationType: string = '';
+  transformationFile: File | null = null;
   responseMessage: string = '';
 
   constructor(private atlService: AtlService, private router:Router) {}
@@ -32,7 +36,9 @@ export class AtlComponent  implements OnInit{
     const file = event.target.files[0];
     if (fileType === 'inModel') this.inModelFile = file;
     if (fileType === 'inMetamodel') this.inMetamodelFile = file;
-    if (fileType === 'outMetamodel') this.outMetamodelFile = file;
+    if (fileType === 'outModelFile') this.outModelFile = file;
+    if (fileType === 'transformationFile') this.transformationFile = file;
+
   }
 
   onSubmit(): void {
@@ -40,19 +46,19 @@ export class AtlComponent  implements OnInit{
     // y si los archivos son válidos
     console.log('inModelFile:', this.inModelFile);
     console.log('inMetamodelFile:', this.inMetamodelFile);
-    console.log('outMetamodelFile:', this.outMetamodelFile);
+    console.log('outMetamodelFile:', this.outModelFile);
     console.log('transformationType:', this.transformationType);
     if (
       this.inModelFile &&
       this.inMetamodelFile &&
-      this.outMetamodelFile &&
+      this.outModelFile &&
       this.transformationType
     ) {
       this.atlService
         .transform(
           this.inModelFile,
           this.inMetamodelFile,
-          this.outMetamodelFile,
+          this.outModelFile,
           this.transformationType
         )
         .subscribe({
@@ -68,8 +74,22 @@ export class AtlComponent  implements OnInit{
     }
   }
   logout(): void {
-    localStorage.removeItem('token'); // Elimina el token del almacenamiento local
-    this.router.navigate(['/login']); // Redirige a la página de inicio de sesión
+    localStorage.removeItem('token');
+    this.router.navigate(['/login']);
+  }
+  addEntryModel(): void {
+    if (this.entryModelFile) {
+      this.atlService.addEntryModel(this.entryMetamodelFile, this.outEntryModelFile, this.entryModelFile).subscribe({
+        next: (response) => {
+          this.responseMessage = response;
+        },
+        error: (error) => {
+          this.responseMessage = `Error: ${error.message}`;
+        },
+      });
+    } else {
+      this.responseMessage = 'Por favor, selecciona un archivo de modelo de entrada.';
+    }
   }
 }
 

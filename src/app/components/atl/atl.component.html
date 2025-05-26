@@ -33,7 +33,14 @@
                   (change)="onFileChange($event, 'inModel')"
                   required
                 />
-                <button type="button">Agregar</button>
+                <button
+                  type="button"
+                  [disabled]="!inModelFile"
+                  class="btn btn-success"
+                  (click)="addEntryModel()"
+                >
+                  Agregar
+                </button>
               </div>
               <div class="col">
                 <label for="entryModel" class="form-label mb-0"
@@ -43,6 +50,7 @@
                   id="entryModel"
                   name="entryModel"
                   class="form-control"
+                  [(ngModel)]="entryModelFile"
                   required
                 >
                   <option value="" disabled selected>
@@ -52,53 +60,155 @@
                   <option value="tipo2">Transformación Tipo 2</option>
                   <option value="tipo3">Transformación Tipo 3</option>
                 </select>
-                <button type="button">Eliminar</button>
+                <button
+                  type="button"
+                  [disabled]="!entryModelFile"
+                  class="btn btn-danger"
+                >
+                  Eliminar
+                </button>
               </div>
             </div>
-            <div class="mb-3">
-              <label for="inMetamodel" class="form-label"
-                >Metamodelo de entrada (.ecore):</label
-              >
-              <input
-                type="file"
-                id="inMetamodel"
-                class="form-control"
-                (change)="onFileChange($event, 'inMetamodel')"
-                required
-              />
-              <button>Agregar</button>
+            <div class="mb-3 row align-items-center">
+              <div class="col">
+                <label for="inMetamodel" class="form-label mb-0"
+                  >Metamodelo de entrada (.ecore):</label
+                >
+                <input
+                  type="file"
+                  id="inMetamodel"
+                  class="form-control"
+                  (change)="onFileChange($event, 'inMetamodel')"
+                  required
+                />
+                <button
+                  type="button"
+                  [disabled]="!inMetamodelFile"
+                  class="btn btn-success"
+                >
+                  Agregar
+                </button>
+              </div>
+              <div class="col">
+                <label for="entryMetamodel" class="form-label mb-0"
+                  >Metamodelos de entrada:</label
+                >
+                <select
+                  id="entryMetamodel"
+                  name="entryMetamodel"
+                  class="form-control"
+                  [(ngModel)]="entryMetamodelFile"
+                  required
+                >
+                  <option value="" disabled selected>
+                    Selecciona una opción
+                  </option>
+                  <option value="Go2Java">Go2Java</option>
+                  <option value="tipo2">Transformación Tipo 2</option>
+                  <option value="tipo3">Transformación Tipo 3</option>
+                </select>
+                <button
+                  type="button"
+                  [disabled]="!entryMetamodelFile"
+                  class="btn btn-danger"
+                >
+                  Eliminar
+                </button>
+              </div>
             </div>
-            <div class="mb-3">
-              <label for="outMetamodel" class="form-label"
-                >Metamodelo de salida (.ecore):</label
-              >
-              <input
-                type="file"
-                id="outMetamodel"
-                class="form-control"
-                (change)="onFileChange($event, 'outMetamodel')"
-                required
-              />
-              <button>Agregar</button>
+            <div class="mb-3 row align-items-center">
+              <div class="col">
+                <label for="outModel" class="form-label mb-0"
+                  >Modelo de salida (.xmi):</label
+                >
+                <input
+                  type="file"
+                  id="outModelFile"
+                  class="form-control"
+                  (change)="onFileChange($event, 'outModelFile')"
+                  required
+                />
+                <button
+                  type="button"
+                  [disabled]="!outModelFile"
+                  class="btn btn-success"
+                >
+                  Agregar
+                </button>
+              </div>
+              <div class="col">
+                <label for="outEntryModel" class="form-label mb-0"
+                  >Modelos de salida:</label
+                >
+                <select
+                  id="outEntryModel"
+                  name="outEntryModel"
+                  class="form-control"
+                  [(ngModel)]="outEntryModelFile"
+                  required
+                >
+                  <option value="" disabled selected>
+                    Selecciona una opción
+                  </option>
+                  <option value="Go2Java">Go2Java</option>
+                  <option value="tipo2">Transformación Tipo 2</option>
+                  <option value="tipo3">Transformación Tipo 3</option>
+                </select>
+                <button
+                  type="button"
+                  [disabled]="!outEntryModelFile"
+                  class="btn btn-danger"
+                >
+                  Eliminar
+                </button>
+              </div>
             </div>
-            <div class="mb-3">
-              <label for="transformationType" class="form-label"
-                >Tipo de transformación:</label
-              >
-              <select
-                id="transformationType"
-                name="transformationType"
-                class="form-select"
-                [(ngModel)]="transformationType"
-                required
-              >
-                <option value="" disabled selected>
-                  Selecciona una opción
-                </option>
-                <option value="Go2Java">Go2Java</option>
-                <option value="tipo2">Transformación Tipo 2</option>
-                <option value="tipo3">Transformación Tipo 3</option>
-              </select>
+            <div class="mb-3 row align-items-center">
+              <div class="col">
+                <label for="transformationFile" class="form-label mb-0"
+                  >Archivo de transformación (.atl):</label
+                >
+                <input
+                  type="file"
+                  id="transformationFile"
+                  class="form-control"
+                  (change)="onFileChange($event, 'transformationFile')"
+                  required
+                />
+                <button
+                  type="button"
+                  [disabled]="!transformationFile"
+                  class="btn btn-success"
+                >
+                  Agregar
+                </button>
+              </div>
+              <div class="col">
+                <label for="transformationType" class="form-label mb-0"
+                  >Tipo de transformación:</label
+                >
+                <select
+                  id="transformationType"
+                  name="transformationType"
+                  class="form-control"
+                  [(ngModel)]="transformationType"
+                  required
+                >
+                  <option value="" disabled selected>
+                    Selecciona una opción
+                  </option>
+                  <option value="Go2Java">Go2Java</option>
+                  <option value="tipo2">Transformación Tipo 2</option>
+                  <option value="tipo3">Transformación Tipo 3</option>
+                </select>
+                <button
+                  type="button"
+                  [disabled]="!transformationType"
+                  class="btn btn-danger"
+                >
+                  Eliminar
+                </button>
+              </div>
             </div>
             <div class="d-flex justify-content-between">
               <button type="submit" class="btn btn-primary">Transformar</button>

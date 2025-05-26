@@ -36,4 +36,16 @@ export class AtlService {
       responseType: 'text', // Cambia según el tipo de respuesta del backend
     });
   }
+  addEntryModel(entryModelFile: string, entryMetamodelFile: string, outEntryModelFile: string): Observable<any> {
+    const formData = new FormData();
+    formData.append('entryModel', entryModelFile);
+    formData.append('entryMetamodel', entryMetamodelFile);
+    formData.append('outEntryModel', outEntryModelFile);
+    return this.http.post(this.apiUrl, formData, {
+      headers: new HttpHeaders(),
+      responseType: 'text', // Cambia según el tipo de respuesta del backend
+    });
+  }
+
+
 }
