@@ -1,0 +1,282 @@
+<div class="container mt-3">
+  <header
+    class="d-flex justify-content-between align-items-center py-3 mb-4 border-bottom"
+  >
+    <!-- Menú hamburguesa a la izquierda del título -->
+    <div class="dropdown me-2">
+      <button
+        class="btn btn-outline-secondary"
+        type="button"
+        id="userMenu"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+        style="border: none; background: transparent"
+      >
+        <!-- Hamburguesa -->
+        <span style="display: inline-block; width: 28px; height: 22px">
+          <span
+            style="
+              display: block;
+              height: 3px;
+              background: #333;
+              margin: 3px 0;
+              border-radius: 3px;
+            "
+          ></span>
+          <span
+            style="
+              display: block;
+              height: 3px;
+              background: #333;
+              margin: 3px 0;
+              border-radius: 3px;
+            "
+          ></span>
+          <span
+            style="
+              display: block;
+              height: 3px;
+              background: #333;
+              margin: 3px 0;
+              border-radius: 3px;
+            "
+          ></span>
+        </span>
+      </button>
+      <ul
+        class="dropdown-menu"
+        aria-labelledby="userMenu"
+        style="list-style-type: disc; padding-left: 2em"
+      >
+        <li class="dropdown-header text-primary">
+          {{ username }}
+        </li>
+        <li style="list-style-type: disc">
+          <a class="dropdown-item" href="#" (click)="editarCuenta()"
+            >Editar cuenta</a
+          >
+        </li>
+        <li style="list-style-type: disc">
+          <a
+            class="dropdown-item text-danger"
+            href="#"
+            (click)="eliminarCuenta()"
+            >Eliminar cuenta</a
+          >
+        </li>
+      </ul>
+    </div>
+    <h1 class="h4 text-primary mb-0">Proyecto Transformación ATL</h1>
+    <button
+      class="btn btn-outline-danger"
+      (click)="logout()"
+      routerLink="/login"
+    >
+      Cerrar Sesión
+    </button>
+  </header>
+
+  <div class="row justify-content-center">
+    <!-- Columna principal -->
+    <div class="col-md-8">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white text-center">
+          <h3>Transformación ATL</h3>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="onSubmit()">
+            <div class="mb-3">
+              <label for="transformationType" class="form-label">
+                Tipo de transformación:
+              </label>
+              <!-- ...código anterior... -->
+              <div class="postman-select-wrapper">
+                <select
+                  id="transformationType"
+                  name="transformationType"
+                  class="form-select postman-select"
+                  [(ngModel)]="transformationType"
+                  (change)="onTransformationTypeChange(inputArchivo)"
+                  required
+                >
+                  <option value="" disabled selected>
+                    Selecciona una opción
+                  </option>
+                  <option value="subir">Subir un archivo</option>
+
+                  <option disabled>Archivos cargados</option>
+                  <option
+                    *ngFor="let tipo of transformationTypes"
+                    [ngValue]="tipo"
+                    class="list-group-item"
+                  >
+                    {{ tipo.filename }}
+                  </option>
+                </select>
+
+                <!-- Input de texto que muestra el nombre del archivo seleccionado -->
+                <div
+                  class="input-group mt-2"
+                  *ngIf="transformationType === 'subir'"
+                >
+                  <input
+                    type="text"
+                    class="form-control"
+                    [value]="archivoSeleccionado?.name || ''"
+                    placeholder="Selecciona un archivo"
+                    readonly
+                    (click)="inputArchivo.click()"
+                    style="cursor: pointer; background-color: #fff"
+                  />
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    (click)="inputArchivo.click()"
+                    title="Seleccionar archivo"
+                  >
+                    <i class="bi bi-paperclip"></i>
+                  </button>
+                  <button
+                    *ngIf="archivoSeleccionado"
+                    type="button"
+                    class="btn btn-outline-primary"
+                    (click)="subirArchivoAlBackend()"
+                    title="Subir archivo"
+                  >
+                    <i class="bi bi-cloud-arrow-up"></i>
+                  </button>
+                </div>
+
+                <!-- Input file oculto -->
+                <input
+                  type="file"
+                  #inputArchivo
+                  style="display: none"
+                  (change)="onArchivoSeleccionado($event)"
+                />
+              </div>
+              <!-- ...código posterior... -->
+            </div>
+            <div class="mb-3">
+              <label for="transformationType" class="form-label"
+                >Tipo de transformación:</label
+              >
+              <select
+                id="transformationType"
+                name="transformationType"
+                class="form-select"
+                [(ngModel)]="transformationType"
+                required
+              >
+                <option value="" disabled selected>
+                  Selecciona una opción
+                </option>
+                <option value="Go2Java">Go2Java</option>
+                <option value="tipo2">Transformación Tipo 2</option>
+                <option value="tipo3">Transformación Tipo 3</option>
+              </select>
+            </div>
+            <div class="d-flex justify-content-between">
+              <button
+                (click)="verTransformacion()"
+                type="submit"
+                class="btn btn-primary"
+              >
+                Transformar
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                (click)="verTransformaciones()"
+              >
+                Ver Transformaciónes
+              </button>
+            </div>
+          </form>
+          <p class="mt-3 text-center text-muted">{{ responseMessage }}</p>
+        </div>
+        <div *ngIf="mostrarTransfomacion">
+          <div *ng class="card border-info mb-3">
+            <div class="card-header bg-info text-white">
+              Resultado de la Transformación
+            </div>
+            <div class="card-body">
+              <ng-container *ngIf="responseMessage; else noResult">
+                <p class="card-text">
+                  {{ responseMessage }}
+                </p>
+              </ng-container>
+              <ng-template #noResult>
+                <p class="card-text text-muted">
+                  Aquí se mostrará el resultado de la transformación una vez que
+                  se complete el proceso.
+                </p>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer text-center">
+          <p class="mb-0">
+            &copy; 2025 Proyecto Transformación ATL. Todos los derechos
+            reservados.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!-- Columna lateral archivos generados -->
+    <div *ngIf="viewFiles" class="col-md-4">
+      <div class="card border-secondary mb-3">
+        <div class="card-header bg-secondary text-white">
+          Archivos Generados
+        </div>
+        <div class="card-body">
+          <ul class="list-group">
+            <li
+              *ngFor="let archivo of archivosGenerados"
+              class="list-group-item"
+            >
+              <div class="d-flex flex-column">
+                <span class="mb-2 fw-semibold">{{ archivo.nombre }}</span>
+                <div class="btn-group" role="group">
+                  <!-- Guardar -->
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-success"
+                    (click)="guardarArchivo(archivo)"
+                    title="Guardar"
+                  >
+                    <i class="bi bi-save"></i> Guardar
+                  </button>
+                  <!-- Descargar -->
+                  <a
+                    [href]="archivo.url"
+                    download
+                    class="btn btn-sm btn-outline-primary"
+                    title="Descargar"
+                  >
+                    <i class="bi bi-download"></i> Descargar
+                  </a>
+                  <!-- Eliminar -->
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="eliminarArchivo(archivo)"
+                    title="Eliminar"
+                  >
+                    <i class="bi bi-trash"></i> Eliminar
+                  </button>
+                </div>
+              </div>
+            </li>
+            <li
+              *ngIf="!archivosGenerados || archivosGenerados.length === 0"
+              class="list-group-item text-muted text-center"
+            >
+              No hay archivos generados aún.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

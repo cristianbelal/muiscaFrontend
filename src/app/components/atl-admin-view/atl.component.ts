@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FilesService } from '../../services/files/files.service';
 
 @Component({
   selector: 'app-atl',
@@ -19,7 +20,7 @@ export class AtlComponent  implements OnInit{
   transformationType: string = '';
   responseMessage: string = '';
 
-  constructor(private atlService: AtlService, private router:Router) {}
+  constructor(private atlService: AtlService, private router:Router, private filesService: FilesService) {}
 
   ngOnInit(): void {
     const token = localStorage.getItem('token');
