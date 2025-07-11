@@ -27,8 +27,9 @@ export class FilesService {
       );
   }
   deleteFile(token: string | null, fileId: string): Observable<any> {
+    console.log('url: ', `${this.apiUrlDeleteFiles}${fileId}`);
     return this.http
-      .delete(`${this.apiUrlDeleteFiles}/${fileId}`, {
+      .delete(`${this.apiUrlDeleteFiles}${fileId}`, {
         headers: { Authorization: `Bearer ${token}` },
         responseType: 'json',
       })

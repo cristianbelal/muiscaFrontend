@@ -34,7 +34,7 @@ export class AtlClientViewComponent {
     private fileService: FilesService
   ) {}
 
-  archivosGenerados: { nombre: string; url: string }[] = [];
+  archivosGenerados: { nombre: String; id: String }[] = [];
 
   ngOnInit(): void {
     const token = localStorage.getItem('token');
@@ -113,8 +113,8 @@ export class AtlClientViewComponent {
         if (archivos || archivos.length != 0) {
           console.log('Archivos obtenidos:', archivos);
           this.archivosGenerados = archivos.map((archivo: any) => ({
-            nombre: archivo.nombre || archivo.fileName,
-            url: archivo.url || archivo.fileUrl,
+            nombre: archivo.filename || archivo.fileName,
+            id: archivo.id || archivo.fileId,
           }));
           this.viewFiles = true;
           //this.responseMessage = 'Archivos obtenidos correctamente.';
@@ -142,11 +142,19 @@ export class AtlClientViewComponent {
     });
   }
   eliminarArchivo(archivo: any): void {
+    const confirmado = window.confirm(
+      `¿Estás seguro de que deseas eliminar el archivo "${archivo.nombre}"?`
+    );
+    if (!confirmado) {
+      return;
+    }
     const token = localStorage.getItem('token');
+    console.log('Eliminando archivo:', archivo);
     this.fileService.deleteFile(token, archivo.id).subscribe({
       next: () => {
         console.log('Archivo eliminado:', archivo);
         this.responseMessage = 'Archivo eliminado correctamente.';
+        setTimeout(() => this.verTransformaciones(), 300);
       },
       error: (error) => {
         console.error('Error al eliminar el archivo:', error);

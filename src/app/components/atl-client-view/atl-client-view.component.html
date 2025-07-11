@@ -226,8 +226,19 @@
     <!-- Columna lateral archivos generados -->
     <div *ngIf="viewFiles" class="col-md-4">
       <div class="card border-secondary mb-3">
-        <div class="card-header bg-secondary text-white">
-          Archivos Generados
+        <div
+          class="card-header bg-secondary text-white d-flex justify-content-between align-items-center"
+        >
+          <span>Archivos Generados</span>
+          <button
+            type="button"
+            class="btn"
+            (click)="viewFiles = false"
+            style="color: red; font-size: 1.2rem"
+            aria-label="Cerrar"
+          >
+            <i class="bi bi-x-lg"></i>
+          </button>
         </div>
         <div class="card-body">
           <ul class="list-group">
@@ -245,16 +256,16 @@
                     (click)="guardarArchivo(archivo)"
                     title="Guardar"
                   >
-                    <i class="bi bi-save"></i> Guardar
+                    <i class="bi bi-save"></i>
                   </button>
                   <!-- Descargar -->
                   <a
-                    [href]="archivo.url"
+                    [href]="archivo.id"
                     download
                     class="btn btn-sm btn-outline-primary"
                     title="Descargar"
                   >
-                    <i class="bi bi-download"></i> Descargar
+                    <i class="bi bi-download"></i>
                   </a>
                   <!-- Eliminar -->
                   <button
@@ -263,7 +274,7 @@
                     (click)="eliminarArchivo(archivo)"
                     title="Eliminar"
                   >
-                    <i class="bi bi-trash"></i> Eliminar
+                    <i class="bi bi-trash"></i>
                   </button>
                 </div>
               </div>
