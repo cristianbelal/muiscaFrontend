@@ -87,6 +87,7 @@ export class LoginComponent implements OnInit {
     }
     this.authService.signInWithGoogle(credential).subscribe({
       next: (backendResponse) => {
+        console.log('Token de Google recibido:', backendResponse.token);
         localStorage.setItem('token', backendResponse.token);
         this.router.navigate(['/atlUserView']);
       },
