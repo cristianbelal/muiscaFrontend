@@ -37,4 +37,9 @@ export class AuthService {
     console.log('Token de Google recibido:', googleToken);
     return this.http.post(this.apiSignIn, { value: googleToken });
   }
+  signInWithFacebook(facebookToken: string): Observable<any> {
+    return this.http.post('', {
+      facebookToken,
+    });
+  }
 }

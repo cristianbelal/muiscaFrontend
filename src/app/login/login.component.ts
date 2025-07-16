@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth/auth.service';
 
-declare const google: any;
+declare const FB: any;
 
 @Component({
   selector: 'app-login',
@@ -46,55 +46,7 @@ export class LoginComponent implements OnInit {
       });
     }
 
-    // Esperar a que el script de Google esté disponible
-    const waitForGoogle = () => {
-      if (window.hasOwnProperty('google')) {
-        // @ts-ignore
-        window.google.accounts.id.initialize({
-          client_id:
-            '928310748438-5smhnfqq6hui1vok3q9vf7333apuibis.apps.googleusercontent.com',
-          callback: (response: any) => {
-            this.ngZone.run(() => this.onGoogleSignIn(response));
-          },
-        });
-      } else {
-        setTimeout(waitForGoogle, 100); // Espera y vuelve a intentar
-      }
-    };
-    waitForGoogle();
-  }
-
-  signInWithGoogle() {
-    // @ts-ignore
-    if (window.google && window.google.accounts && window.google.accounts.id) {
-      // @ts-ignore
-      window.google.accounts.id.prompt((notification: any) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          this.errorMessage =
-            'El inicio de sesión fue cancelado. Recarga la página para intentarlo de nuevo.';
-        }
-      });
-    } else {
-      this.errorMessage = 'Google Identity Services no está cargado.';
-    }
-  }
-
-  onGoogleSignIn(response: any) {
-    const credential = response.credential;
-    if (!credential) {
-      this.errorMessage = 'No se recibió token de Google.';
-      return;
-    }
-    this.authService.signInWithGoogle(credential).subscribe({
-      next: (backendResponse) => {
-        console.log('Token de Google recibido:', backendResponse.token);
-        localStorage.setItem('token', backendResponse.token);
-        this.router.navigate(['/atlUserView']);
-      },
-      error: () => {
-        this.errorMessage = 'Error al iniciar sesión con Google';
-      },
-    });
+    this.initializeGoogleLogin();
   }
 
   onSubmit(): void {
@@ -131,17 +83,86 @@ export class LoginComponent implements OnInit {
     }
   }
 
-  parseJwt(token: string) {
-    // Decodifica el JWT para obtener los datos del usuario
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
+  initializeGoogleLogin() {
+    const clientId =
+      '928310748438-5smhnfqq6hui1vok3q9vf7333apuibis.apps.googleusercontent.com';
+
+    const waitForGoogle = () => {
+      if (window.hasOwnProperty('google')) {
+        // @ts-ignore
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (response: any) => {
+            this.ngZone.run(() => this.handleCredentialResponse(response));
+          },
+        });
+
+        // Renderizar botón si deseas
+        // @ts-ignore
+        window.google.accounts.id.renderButton(
+          document.getElementById('googleButton'),
+          { theme: 'outline', size: 'large' }
+        );
+      } else {
+        setTimeout(waitForGoogle, 100);
+      }
+    };
+
+    waitForGoogle();
+  }
+
+  handleCredentialResponse(response: any) {
+    const credential = response.credential;
+
+    if (!credential) {
+      this.errorMessage = 'No se recibió token de Google';
+      return;
+    }
+
+    // Llama al backend para validar el token de Google y obtener tu JWT
+    this.authService.signInWithGoogle(credential).subscribe({
+      next: (res) => {
+        localStorage.setItem('token', res.token);
+        this.router.navigate(['/atlUserView']);
+      },
+      error: () => {
+        this.errorMessage = 'Error al iniciar sesión con Google';
+      },
+    });
+  }
+
+  signInWithGoogle() {
+    // @ts-ignore
+    if (window.google && window.google.accounts.id) {
+      // @ts-ignore
+      window.google.accounts.id.prompt();
+    } else {
+      this.errorMessage = 'Google Identity Services no está disponible';
+    }
+  }
+
+  signInWithFacebook() {
+    FB.login(
+      (response: any) => {
+        if (response.authResponse) {
+          const accessToken = response.authResponse.accessToken;
+
+          // Enviar el token de Facebook a tu backend
+          this.authService.signInWithFacebook(accessToken).subscribe({
+            next: (res) => {
+              localStorage.setItem('token', res.token);
+              this.router.navigate(['/atlUserView']);
+            },
+            error: () => {
+              this.errorMessage = 'Error al iniciar sesión con Facebook';
+            },
+          });
+        } else {
+          this.errorMessage = 'Inicio de sesión con Facebook cancelado.';
+        }
+      },
+      { scope: 'public_profile,email' }
     );
-    return JSON.parse(jsonPayload);
   }
 }
 

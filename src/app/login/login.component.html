@@ -49,15 +49,20 @@
             <div class="text-center my-3">
               <span>Regístrate con</span>
             </div>
+            <!--iniciar sesion con google-->
+            <div id="googleButton" class="mt-3"></div>
+
+            <!-- Mostrar errores -->
+            <p class="text-danger mt-3">{{ errorMessage }}</p>
+            <!-- Iniciar sesión con Facebook -->
+            <button
+              class="btn btn-outline-primary w-100 mt-3"
+              (click)="signInWithFacebook()"
+            >
+              <i class="bi bi-facebook"></i> Iniciar sesión con Facebook
+            </button>
             <div class="d-flex justify-content-center gap-3 mb-3">
-              <button
-                type="button"
-                class="btn btn-outline-danger rounded-circle"
-                style="width: 48px; height: 48px"
-                (click)="signInWithGoogle()"
-              >
-                <i class="bi bi-google" style="font-size: 1.5rem"></i>
-              </button>
+              <!--
               <button
                 type="button"
                 class="btn btn-outline-primary rounded-circle"
@@ -65,6 +70,7 @@
               >
                 <i class="bi bi-facebook" style="font-size: 1.5rem"></i>
               </button>
+              -->
               <button
                 type="button"
                 class="btn btn-outline-info rounded-circle"
