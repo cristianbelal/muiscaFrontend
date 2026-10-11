@@ -1,0 +1,95 @@
+<div class="page">
+  <app-page-header
+    heading="Usuarios y roles"
+    icon="manage_accounts"
+    subtitle="Cree cuentas y asigne roles. El auto-registro siempre crea usuarios con rol Usuario; aquí puede promoverlos."
+  >
+    <button mat-flat-button type="button" (click)="create()">
+      <mat-icon>person_add</mat-icon>
+      Nuevo usuario
+    </button>
+  </app-page-header>
+
+  <mat-card appearance="outlined" class="table-card">
+    <div class="table-toolbar">
+      <mat-form-field>
+        <mat-label>Buscar</mat-label>
+        <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Nombre de usuario" />
+        <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+      </mat-form-field>
+      <mat-form-field class="role-filter">
+        <mat-label>Rol</mat-label>
+        <mat-select [ngModel]="roleFilter()" (ngModelChange)="roleFilter.set($event)">
+          <mat-option value="ALL">Todos</mat-option>
+          @for (role of roles; track role) {
+            <mat-option [value]="role">{{ roleLabels[role] }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" aria-label="Cargando usuarios" />
+    }
+
+    @if (!loading() && filtered().length === 0) {
+      <app-empty-state icon="search_off" heading="Ningún usuario coincide con los filtros" />
+    } @else if (filtered().length) {
+      <div class="table-wrap">
+        <table mat-table [dataSource]="filtered()" aria-label="Usuarios">
+          <ng-container matColumnDef="username">
+            <th mat-header-cell *matHeaderCellDef>Usuario</th>
+            <td mat-cell *matCellDef="let u">
+              {{ u.username }}
+              @if (isSelf(u)) {
+                <span class="badge">Usted</span>
+              }
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="role">
+            <th mat-header-cell *matHeaderCellDef>Rol</th>
+            <td mat-cell *matCellDef="let u">
+              <span class="badge" [class.badge-primary]="u.role !== 'USER'">{{ u.role | roleLabel }}</span>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="account">
+            <th mat-header-cell *matHeaderCellDef>Acceso</th>
+            <td mat-cell *matCellDef="let u">
+              @if (u.localAccount) {
+                <span class="muted"><mat-icon class="inline-icon" aria-hidden="true">key</mat-icon> Usuario y contraseña</span>
+              } @else {
+                <span class="muted"><mat-icon class="inline-icon" aria-hidden="true">account_circle</mat-icon> Google</span>
+              }
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="actions-cell"><span class="visually-hidden">Acciones</span></th>
+            <td mat-cell *matCellDef="let u" class="actions-cell">
+              <button
+                mat-icon-button
+                type="button"
+                matTooltip="Editar"
+                [attr.aria-label]="'Editar a ' + u.username"
+                (click)="edit(u)"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                [matTooltip]="isSelf(u) ? 'No puede eliminar su propia cuenta' : 'Eliminar'"
+                [attr.aria-label]="'Eliminar a ' + u.username"
+                [disabled]="isSelf(u)"
+                (click)="delete(u)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="columns"></tr>
+          <tr mat-row *matRowDef="let row; columns: columns"></tr>
+        </table>
+      </div>
+    }
+  </mat-card>
+</div>

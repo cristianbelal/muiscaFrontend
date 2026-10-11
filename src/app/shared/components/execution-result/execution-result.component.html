@@ -1,0 +1,109 @@
+@let current = execution();
+
+<div class="result stack">
+  @if (succeeded()) {
+    <div class="callout success" role="status">
+      <mat-icon aria-hidden="true">check_circle</mat-icon>
+      <p>
+        La transformación terminó correctamente en {{ current.durationMs | duration }}.
+        @if (hasCode()) {
+          Se generaron {{ current.generatedFiles.length }}
+          {{ current.generatedFiles.length === 1 ? 'archivo' : 'archivos' }} de código.
+        }
+      </p>
+    </div>
+  } @else {
+    <div class="callout error" role="alert">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      <div>
+        <p><strong>El motor de transformación no pudo procesar el modelo.</strong></p>
+        @if (current.errorMessage) {
+          <p class="error-detail mono">{{ current.errorMessage }}</p>
+        }
+        <p class="small">
+          Revise que el modelo corresponda al metamodelo de entrada. La ejecución quedó registrada en su historial.
+        </p>
+      </div>
+    </div>
+  }
+
+  <dl class="meta">
+    <div>
+      <dt>Estado</dt>
+      <dd><app-status-badge [status]="current.status" /></dd>
+    </div>
+    <div>
+      <dt>Transformación</dt>
+      <dd>{{ current.transformationName }}</dd>
+    </div>
+    <div>
+      <dt>Modelo de entrada</dt>
+      <dd class="mono">{{ current.inputModelName }}</dd>
+    </div>
+    <div>
+      <dt>Ejecutada por</dt>
+      <dd>{{ current.executedBy }}</dd>
+    </div>
+    <div>
+      <dt>Fecha</dt>
+      <dd>{{ current.createdAt | date: 'medium' }}</dd>
+    </div>
+    <div>
+      <dt>Duración</dt>
+      <dd>{{ current.durationMs | duration }}</dd>
+    </div>
+  </dl>
+
+  <section [attr.aria-labelledby]="'artifacts-title-' + current.id">
+    <h3 [id]="'artifacts-title-' + current.id" class="section-title">Archivos</h3>
+    <div class="downloads">
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="download('inputModel')"
+        [disabled]="downloading() === 'inputModel'"
+      >
+        <mat-icon>upload_file</mat-icon>
+        Modelo de entrada
+      </button>
+      @if (hasOutputModel()) {
+        <button
+          mat-flat-button
+          type="button"
+          (click)="download('outputModel')"
+          [disabled]="downloading() === 'outputModel'"
+        >
+          <mat-icon>account_tree</mat-icon>
+          Modelo transformado (.xmi)
+        </button>
+      }
+      @if (hasCode()) {
+        <button
+          mat-flat-button
+          type="button"
+          (click)="download('generatedCode')"
+          [disabled]="downloading() === 'generatedCode'"
+        >
+          <mat-icon>folder_zip</mat-icon>
+          Código del contrato (.zip)
+        </button>
+      }
+    </div>
+    @if (downloading()) {
+      <mat-progress-bar mode="indeterminate" aria-label="Descargando archivo" />
+    }
+  </section>
+
+  @if (hasCode()) {
+    <section [attr.aria-labelledby]="'code-title-' + current.id">
+      <h3 [id]="'code-title-' + current.id" class="section-title">Contratos inteligentes generados</h3>
+      @if (loadingFiles()) {
+        <mat-progress-bar mode="indeterminate" aria-label="Cargando el código generado" />
+      } @else if (files().length) {
+        <app-code-viewer [files]="files()" />
+      } @else {
+        <p class="muted">No se pudo cargar la vista previa; descargue el ZIP para ver el código.</p>
+      }
+    </section>
+  }
+</div>

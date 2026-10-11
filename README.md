@@ -1,59 +1,71 @@
-# ZenodoMuisca
+# MUISCA · Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.1.1.
+Interfaz web de MUISCA: ejecución de transformaciones dirigidas por modelos (ATL + Acceleo) que
+generan contratos inteligentes para Hyperledger Fabric y Ethereum.
 
-## Development server
+- Angular 19 (componentes standalone, signals, control flow `@if/@for`)
+- Angular Material 19 (tema M3 `azure-blue`)
+- Backend: Spring Boot en `../muisca` (fuente oficial de las reglas de negocio)
 
-To start a local development server, run:
-
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Puesta en marcha
 
 ```bash
-ng generate component component-name
+npm install
+npm start            # http://localhost:4200 (el backend debe estar en http://localhost:8080)
+npm test             # pruebas unitarias (Karma + Jasmine)
+npm run build        # build de producción en dist/
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+La URL del backend y el client id de Google están en `src/environments/environment*.ts`.
+El backend solo acepta CORS desde `http://localhost:4200` (`SecurityConfig.corsConfigurationSource`).
 
-```bash
-ng generate --help
+## Estructura
+
+```
+src/app/
+├─ core/                 Infraestructura transversal (sin UI)
+│  ├─ api/               Un cliente por controlador REST del backend
+│  ├─ auth/              Sesión (signals), guards, interceptor JWT, Google Identity
+│  ├─ http/              ApiError, interceptor de errores, contextos HTTP, multipart
+│  ├─ files/             Descargas autenticadas (Blob + Content-Disposition)
+│  ├─ models/            Tipos que reflejan los DTO del backend
+│  ├─ notifications/     Avisos (MatSnackBar)
+│  └─ i18n/              Paginador en español, títulos de pestaña
+├─ shared/               Componentes, diálogos, pipes y validadores reutilizables
+├─ layout/shell/         Barra superior + menú lateral por rol
+└─ features/             Una carpeta por caso de uso (todas con lazy loading)
+   ├─ auth/              Login (usuario/contraseña y Google) y registro
+   ├─ home/              Inicio por rol
+   ├─ catalog/           Catálogo y ejecución de transformaciones
+   ├─ executions/        Historial, detalle, descargas y vista del código generado
+   ├─ metamodels/        Metamodelos Ecore
+   ├─ atl-modules/       Módulos ATL
+   ├─ acceleo-modules/   Plantillas Acceleo
+   ├─ transformations/   Definición y publicación del catálogo
+   ├─ workspace/         Compilar y probar ATL/Acceleo sin registrar
+   ├─ users/             Usuarios y roles (ADMIN)
+   └─ account/           Mi cuenta
 ```
 
-## Building
+## Roles (replican `SecurityConfig`)
 
-To build the project run:
+| Sección | USER | MODEL_ENGINEER | ADMIN |
+| --- | :-: | :-: | :-: |
+| Inicio, catálogo, ejecutar, historial propio | ✓ | ✓ | ✓ |
+| Historial de todos los usuarios | | | ✓ |
+| Metamodelos, ATL, Acceleo, transformaciones, espacio de trabajo | | ✓ | ✓ |
+| Publicar / retirar transformaciones | | | ✓ |
+| Usuarios y roles | | | ✓ |
 
-```bash
-ng build
-```
+Los guards solo mejoran la usabilidad: el backend valida cada petición.
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Convenciones
 
-## Running unit tests
+- Código en inglés, textos de interfaz en español.
+- Formularios con Reactive Forms; los validadores replican las anotaciones `@NotBlank`, `@Size`
+  y `requireExtension` del backend para avisar antes de enviar.
+- Los errores HTTP se normalizan en `core/http/error.interceptor.ts`. Una petición que muestra
+  sus errores en la propia pantalla usa `silentErrors()` para no duplicar el aviso.
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+El análisis completo y el detalle de los cambios están en
+[docs/informe-frontend-muisca.md](docs/informe-frontend-muisca.md).

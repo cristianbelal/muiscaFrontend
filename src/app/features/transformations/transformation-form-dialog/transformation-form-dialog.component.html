@@ -1,0 +1,104 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Editar transformación' : 'Nueva transformación' }}</h2>
+<form [formGroup]="form" (ngSubmit)="save()" novalidate>
+  <mat-dialog-content>
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" aria-label="Cargando metamodelos y módulos" />
+    }
+    <p class="muted">
+      Una transformación es lo que verá el usuario final en el catálogo. Encadena un módulo ATL (modelo a modelo), una
+      plantilla Acceleo (modelo a código) o ambos.
+    </p>
+
+    <div class="form-grid">
+      <mat-form-field>
+        <mat-label>Nombre visible en el catálogo</mat-label>
+        <input matInput formControlName="name" [maxlength]="nameMax" required />
+        <mat-hint>Use un nombre que entienda un usuario sin conocimientos técnicos.</mat-hint>
+        @if (form.controls.name.hasError('required')) {
+          <mat-error>El nombre es obligatorio.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Descripción</mat-label>
+        <textarea matInput formControlName="description" rows="2" [maxlength]="descriptionMax"></textarea>
+        <mat-hint>Explique qué debe subir el usuario y qué obtendrá.</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>1. Metamodelo del modelo que sube el usuario</mat-label>
+        <mat-select formControlName="inputMetamodelId" required>
+          @for (metamodel of metamodels(); track metamodel.id) {
+            <mat-option [value]="metamodel.id">{{ metamodel.name }}</mat-option>
+          }
+        </mat-select>
+        @if (form.controls.inputMetamodelId.hasError('required')) {
+          <mat-error>Seleccione el metamodelo de entrada.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>2. Transformación ATL (opcional)</mat-label>
+        <mat-select formControlName="atlModuleId">
+          <mat-option [value]="null">Sin etapa ATL</mat-option>
+          @for (module of availableAtl(); track module.id) {
+            <mat-option [value]="module.id">
+              {{ module.name }} ({{ module.sourceMetamodel.name }} → {{ module.targetMetamodel.name }})
+            </mat-option>
+          }
+        </mat-select>
+        <mat-hint>
+          @if (form.controls.inputMetamodelId.value !== null && availableAtl().length === 0) {
+            No hay módulos ATL que reciban este metamodelo.
+          } @else {
+            Convierte el modelo a otro metamodelo.
+          }
+        </mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>3. Generación de código Acceleo (opcional)</mat-label>
+        <mat-select formControlName="acceleoModuleId">
+          <mat-option [value]="null">Sin generación de código</mat-option>
+          @for (module of availableAcceleo(); track module.id) {
+            <mat-option [value]="module.id">{{ module.name }}</mat-option>
+          }
+        </mat-select>
+        <mat-hint>
+          @if (codeInputMetamodelId() !== null && availableAcceleo().length === 0) {
+            No hay plantillas para modelos de {{ codeInputName() }}.
+          } @else if (codeInputName()) {
+            Plantillas que reciben modelos de {{ codeInputName() }}.
+          } @else {
+            Genera el código fuente del contrato.
+          }
+        </mat-hint>
+      </mat-form-field>
+    </div>
+
+    @if (form.hasError('noStage') && (form.touched || form.dirty)) {
+      <div class="callout error" role="alert">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        <p>Elija al menos una etapa: una transformación ATL, una plantilla Acceleo o ambas.</p>
+      </div>
+    }
+
+    @if (preview().inputMetamodel && (preview().atlModule || preview().acceleoModule)) {
+      <section class="preview" aria-label="Vista previa">
+        <h3 class="small muted">Así la verá el usuario</h3>
+        <app-transformation-chain [chain]="preview()" [showModules]="true" />
+      </section>
+    }
+
+    <app-api-error-panel [error]="error()" />
+  </mat-dialog-content>
+  @if (saving()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Guardando la transformación" />
+  }
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close [disabled]="saving()">Cancelar</button>
+    <button mat-flat-button type="submit" [disabled]="saving() || loading()">
+      {{ isEdit ? 'Guardar cambios' : 'Crear transformación' }}
+    </button>
+  </mat-dialog-actions>
+</form>

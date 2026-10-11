@@ -1,0 +1,82 @@
+<div class="page page-narrow">
+  <a mat-button routerLink="/catalogo" class="back">
+    <mat-icon>arrow_back</mat-icon>
+    Volver al catálogo
+  </a>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Cargando la transformación" />
+  } @else if (notFound()) {
+    <div class="callout error" role="alert">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      <p>La transformación no existe o no está publicada.</p>
+    </div>
+  } @else if (transformation()) {
+    @let t = transformation()!;
+    <app-page-header [heading]="t.name" icon="play_circle" [subtitle]="t.description ?? ''" />
+
+    @if (!t.published) {
+      <div class="callout info draft" role="note">
+        <mat-icon aria-hidden="true">visibility_off</mat-icon>
+        <p>Esta transformación es un borrador: solo la ven ingenieros y administradores hasta que se publique.</p>
+      </div>
+    }
+
+    <mat-card appearance="outlined" class="step-card">
+      <mat-card-content class="stack">
+        <h2 class="step-title"><span class="step-number" aria-hidden="true">1</span> Qué hace esta transformación</h2>
+        <app-transformation-chain [chain]="t" [showModules]="canManageCatalog()" />
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card appearance="outlined" class="step-card">
+      <mat-card-content>
+        <h2 class="step-title"><span class="step-number" aria-hidden="true">2</span> Suba su modelo</h2>
+        <p class="muted">
+          Debe ser un archivo <strong>.xmi</strong> conforme al metamodelo <strong>{{ t.inputMetamodel.name }}</strong>.
+          MUISCA verifica el modelo antes de ejecutarlo.
+        </p>
+        <form (ngSubmit)="run()" novalidate>
+          <app-file-picker
+            [formControl]="inputModel"
+            label="Modelo de entrada"
+            [accept]="modelAccept"
+            hint="Arrastre aquí su modelo .xmi o selecciónelo."
+          />
+
+          <app-api-error-panel [error]="error()" />
+
+          <div class="form-actions">
+            @if (execution()) {
+              <button mat-button type="button" (click)="reset()">Usar otro modelo</button>
+            }
+            <button mat-flat-button type="submit" [disabled]="running()">
+              <mat-icon>play_arrow</mat-icon>
+              {{ running() ? 'Transformando…' : 'Ejecutar transformación' }}
+            </button>
+          </div>
+        </form>
+        @if (running()) {
+          <mat-progress-bar mode="indeterminate" aria-label="Ejecutando la transformación" />
+          <p class="muted small" role="status">Esto puede tardar unos segundos según el tamaño del modelo.</p>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    @if (execution(); as result) {
+      <mat-card appearance="outlined" class="step-card" aria-live="polite">
+        <mat-card-content>
+          <div class="row">
+            <h2 class="step-title"><span class="step-number" aria-hidden="true">3</span> Resultado</h2>
+            <span class="spacer"></span>
+            <a mat-button [routerLink]="['/ejecuciones', result.id]">
+              Ver en el historial
+              <mat-icon iconPositionEnd>open_in_new</mat-icon>
+            </a>
+          </div>
+          <app-execution-result [execution]="result" />
+        </mat-card-content>
+      </mat-card>
+    }
+  }
+</div>

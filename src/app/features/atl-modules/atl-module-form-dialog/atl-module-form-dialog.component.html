@@ -1,0 +1,93 @@
+<h2 mat-dialog-title>Registrar módulo ATL</h2>
+<form [formGroup]="form" (ngSubmit)="save()" novalidate>
+  <mat-dialog-content>
+    <p class="muted">
+      Un módulo ATL transforma un modelo de un metamodelo (origen) en otro (destino). El servidor lo compila con el
+      compilador que indique su cabecera (<code>-- &#64;atlcompiler</code>).
+    </p>
+
+    <app-file-picker formControlName="atlFile" label="Código del módulo (.atl)" [accept]="atlAccept" />
+
+    <div class="row verify">
+      <button mat-stroked-button type="button" (click)="verify()" [disabled]="compiling() || saving()">
+        <mat-icon>fact_check</mat-icon>
+        Verificar compilación
+      </button>
+      @if (compilation(); as c) {
+        @if (c.valid) {
+          <span class="badge badge-success"><mat-icon aria-hidden="true">check_circle</mat-icon>Compila</span>
+        } @else {
+          <span class="badge badge-error"><mat-icon aria-hidden="true">cancel</mat-icon>No compila</span>
+        }
+      }
+    </div>
+    @if (compiling()) {
+      <mat-progress-bar mode="indeterminate" aria-label="Compilando el módulo" />
+    }
+    @if (compilation(); as c) {
+      @if (c.valid) {
+        <p class="small muted" role="status">
+          Módulo <strong>{{ c.moduleName }}</strong> ({{ c.compiler }}):
+          <code>create {{ c.outModelName }} : {{ c.targetAlias }} from {{ c.inModelName }} : {{ c.sourceAlias }}</code>
+        </p>
+      }
+      <app-problem-list [problems]="c.problems" heading="Resultado de la compilación" />
+    }
+
+    <div class="form-grid two-columns">
+      <mat-form-field class="full">
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="name" [maxlength]="nameMax" required />
+        @if (form.controls.name.hasError('required')) {
+          <mat-error>El nombre es obligatorio.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Metamodelo de origen</mat-label>
+        <mat-select formControlName="sourceMetamodelId" required>
+          @for (metamodel of metamodels(); track metamodel.id) {
+            <mat-option [value]="metamodel.id">{{ metamodel.name }}</mat-option>
+          }
+        </mat-select>
+        <mat-hint>Lo que recibe (IN)</mat-hint>
+        @if (form.controls.sourceMetamodelId.hasError('required')) {
+          <mat-error>Seleccione el metamodelo de origen.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Metamodelo de destino</mat-label>
+        <mat-select formControlName="targetMetamodelId" required>
+          @for (metamodel of metamodels(); track metamodel.id) {
+            <mat-option [value]="metamodel.id">{{ metamodel.name }}</mat-option>
+          }
+        </mat-select>
+        <mat-hint>Lo que produce (OUT)</mat-hint>
+        @if (form.controls.targetMetamodelId.hasError('required')) {
+          <mat-error>Seleccione el metamodelo de destino.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="full">
+        <mat-label>Descripción</mat-label>
+        <textarea matInput formControlName="description" rows="2" [maxlength]="descriptionMax"></textarea>
+      </mat-form-field>
+    </div>
+    @if (!loadingMetamodels() && metamodels().length === 0) {
+      <div class="callout info" role="note">
+        <mat-icon aria-hidden="true">info</mat-icon>
+        <p>Primero registre los metamodelos de origen y destino en la sección Metamodelos.</p>
+      </div>
+    }
+
+    <app-api-error-panel [error]="error()" />
+  </mat-dialog-content>
+  @if (saving()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Registrando el módulo" />
+  }
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close [disabled]="saving()">Cancelar</button>
+    <button mat-flat-button type="submit" [disabled]="saving()">Registrar</button>
+  </mat-dialog-actions>
+</form>

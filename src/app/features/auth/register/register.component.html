@@ -1,0 +1,73 @@
+<app-auth-layout heading="Crear cuenta" subtitle="Las cuentas nuevas pueden ejecutar las transformaciones publicadas.">
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Creando la cuenta" />
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <mat-form-field class="full-width">
+      <mat-label>Usuario o correo</mat-label>
+      <input matInput formControlName="username" autocomplete="username" maxlength="100" required />
+      <mat-icon matPrefix aria-hidden="true">person</mat-icon>
+      @if (form.controls.username.hasError('required')) {
+        <mat-error>Elija un nombre de usuario.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <mat-label>Contraseña</mat-label>
+      <input
+        matInput
+        formControlName="password"
+        [type]="hidePassword() ? 'password' : 'text'"
+        autocomplete="new-password"
+        required
+      />
+      <mat-icon matPrefix aria-hidden="true">lock</mat-icon>
+      <button
+        mat-icon-button
+        matSuffix
+        type="button"
+        (click)="hidePassword.set(!hidePassword())"
+        [attr.aria-label]="hidePassword() ? 'Mostrar contraseña' : 'Ocultar contraseña'"
+        [attr.aria-pressed]="!hidePassword()"
+      >
+        <mat-icon>{{ hidePassword() ? 'visibility' : 'visibility_off' }}</mat-icon>
+      </button>
+      <mat-hint>Mínimo 6 caracteres.</mat-hint>
+      @if (form.controls.password.hasError('required')) {
+        <mat-error>Ingrese una contraseña.</mat-error>
+      } @else if (form.controls.password.hasError('minlength')) {
+        <mat-error>La contraseña debe tener al menos 6 caracteres.</mat-error>
+      } @else if (form.controls.password.hasError('maxlength')) {
+        <mat-error>La contraseña admite como máximo 100 caracteres.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <mat-label>Confirmar contraseña</mat-label>
+      <input
+        matInput
+        formControlName="confirmPassword"
+        [type]="hidePassword() ? 'password' : 'text'"
+        autocomplete="new-password"
+        required
+      />
+      <mat-icon matPrefix aria-hidden="true">lock_reset</mat-icon>
+      @if (form.controls.confirmPassword.hasError('required')) {
+        <mat-error>Repita la contraseña.</mat-error>
+      }
+    </mat-form-field>
+    @if (form.hasError('passwordMismatch') && form.controls.confirmPassword.touched) {
+      <div class="callout error" role="alert">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        <p>Las contraseñas no coinciden.</p>
+      </div>
+    }
+
+    <app-api-error-panel [error]="error()" />
+
+    <button mat-flat-button type="submit" class="full-width submit" [disabled]="loading()">Crear cuenta</button>
+  </form>
+
+  <p class="center">¿Ya tiene cuenta? <a routerLink="/login">Inicie sesión</a></p>
+</app-auth-layout>

@@ -1,0 +1,34 @@
+.meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px 24px;
+  margin: 0;
+}
+
+.meta dt {
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.meta dd {
+  margin: 2px 0 0;
+}
+
+.section-title {
+  margin: 0 0 8px;
+  font: var(--mat-sys-title-small);
+}
+
+.downloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.error-detail {
+  margin: 6px 0;
+  white-space: pre-wrap;
+  max-height: 160px;
+  overflow: auto;
+}

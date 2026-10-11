@@ -1,0 +1,31 @@
+.back {
+  margin: 0 0 12px -8px;
+}
+
+.draft {
+  margin-bottom: 16px;
+}
+
+.step-card {
+  margin-bottom: 16px;
+}
+
+.step-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  font: var(--mat-sys-title-medium);
+}
+
+.step-number {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
