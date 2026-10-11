@@ -51,8 +51,17 @@ export class TransformationApi {
    * 422 se convierte en un resultado normal con status FAILED.
    */
   execute(id: number, inputModel: File): Observable<Execution> {
+    return this.run(id, toFormData({ inputModel }));
+  }
+
+  /** Igual que execute, pero con un modelo de la biblioteca del usuario (parámetro modelId). */
+  executeStoredModel(id: number, modelId: number): Observable<Execution> {
+    return this.run(id, toFormData({ modelId }));
+  }
+
+  private run(id: number, body: FormData): Observable<Execution> {
     return this.http
-      .post<Execution>(`${this.base}/${id}/executions`, toFormData({ inputModel }), { context: silentErrors() })
+      .post<Execution>(`${this.base}/${id}/executions`, body, { context: silentErrors() })
       .pipe(
         catchError((error: unknown) =>
           error instanceof ApiError && error.status === 422 && isExecution(error.body)

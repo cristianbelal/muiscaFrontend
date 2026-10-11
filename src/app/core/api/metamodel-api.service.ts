@@ -5,7 +5,7 @@ import { FileDownloadService } from '../files/file-download.service';
 import { apiUrl } from '../http/api-url';
 import { toFormData } from '../http/form-data';
 import { silentErrors } from '../http/http-context';
-import { Metamodel } from '../models';
+import { Metamodel, MetadataRequest } from '../models';
 
 export interface CreateMetamodelCommand {
   name: string;
@@ -32,6 +32,11 @@ export class MetamodelApi {
   /** Los errores se muestran en el formulario (incluidos los problemas del .ecore). */
   create(command: CreateMetamodelCommand): Observable<Metamodel> {
     return this.http.post<Metamodel>(this.base, toFormData({ ...command }), { context: silentErrors() });
+  }
+
+  /** Cambia nombre y descripción sin modificar el archivo (PATCH /{id}). */
+  updateMetadata(id: number, request: MetadataRequest): Observable<Metamodel> {
+    return this.http.patch<Metamodel>(`${this.base}/${id}`, request, { context: silentErrors() });
   }
 
   delete(id: number): Observable<void> {

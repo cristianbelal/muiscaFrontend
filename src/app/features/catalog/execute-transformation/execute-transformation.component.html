@@ -31,18 +31,57 @@
 
     <mat-card appearance="outlined" class="step-card">
       <mat-card-content>
-        <h2 class="step-title"><span class="step-number" aria-hidden="true">2</span> Suba su modelo</h2>
+        <h2 class="step-title"><span class="step-number" aria-hidden="true">2</span> Elija su modelo</h2>
         <p class="muted">
-          Debe ser un archivo <strong>.xmi</strong> conforme al metamodelo <strong>{{ t.inputMetamodel.name }}</strong>.
-          MUISCA verifica el modelo antes de ejecutarlo.
+          Debe ser un modelo <strong>.xmi</strong> del metamodelo <strong>{{ t.inputMetamodel.name }}</strong>. MUISCA
+          lo verifica antes de ejecutarlo.
         </p>
+
+        <mat-button-toggle-group
+          class="source"
+          [value]="source()"
+          (change)="setSource($event.value)"
+          aria-label="Origen del modelo"
+          hideSingleSelectionIndicator
+        >
+          <mat-button-toggle value="upload"><mat-icon>upload_file</mat-icon> Subir archivo</mat-button-toggle>
+          <mat-button-toggle value="library">
+            <mat-icon>folder_open</mat-icon> Mis modelos ({{ compatibleModels().length }})
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+
         <form (ngSubmit)="run()" novalidate>
-          <app-file-picker
-            [formControl]="inputModel"
-            label="Modelo de entrada"
-            [accept]="modelAccept"
-            hint="Arrastre aquí su modelo .xmi o selecciónelo."
-          />
+          @if (source() === 'upload') {
+            <app-file-picker
+              [formControl]="inputModel"
+              label="Modelo de entrada"
+              [accept]="modelAccept"
+              hint="Arrastre aquí su modelo .xmi o selecciónelo."
+            />
+            <mat-checkbox [ngModel]="saveToLibrary()" (ngModelChange)="saveToLibrary.set($event)" name="save">
+              Guardar también este modelo en mi biblioteca
+            </mat-checkbox>
+          } @else if (compatibleModels().length) {
+            <mat-form-field class="full-width">
+              <mat-label>Modelo guardado</mat-label>
+              <mat-select [formControl]="storedModelId" required>
+                @for (model of compatibleModels(); track model.id) {
+                  <mat-option [value]="model.id">{{ model.name }} · {{ model.fileName }}</mat-option>
+                }
+              </mat-select>
+              @if (storedModelId.hasError('required')) {
+                <mat-error>Elija un modelo de su biblioteca.</mat-error>
+              }
+            </mat-form-field>
+          } @else {
+            <div class="callout info" role="note">
+              <mat-icon aria-hidden="true">info</mat-icon>
+              <p>
+                No tiene modelos de {{ t.inputMetamodel.name }} guardados. Súbalo como archivo o agréguelo en
+                <a routerLink="/modelos">Mis modelos</a>.
+              </p>
+            </div>
+          }
 
           <app-api-error-panel [error]="error()" />
 
@@ -64,7 +103,7 @@
     </mat-card>
 
     @if (execution(); as result) {
-      <mat-card appearance="outlined" class="step-card" aria-live="polite">
+      <mat-card #resultCard appearance="outlined" class="step-card result-card" aria-live="polite">
         <mat-card-content>
           <div class="row">
             <h2 class="step-title"><span class="step-number" aria-hidden="true">3</span> Resultado</h2>

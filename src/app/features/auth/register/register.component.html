@@ -3,6 +3,13 @@
     <mat-progress-bar mode="indeterminate" aria-label="Creando la cuenta" />
   }
 
+  @if (publicSettings()?.registrationEnabled === false) {
+    <div class="callout info" role="note">
+      <mat-icon aria-hidden="true">lock</mat-icon>
+      <p>El registro de cuentas nuevas está cerrado. Solicite una cuenta a un administrador de MUISCA.</p>
+    </div>
+  }
+
   <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
     <mat-form-field class="full-width">
       <mat-label>Usuario o correo</mat-label>

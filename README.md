@@ -16,8 +16,28 @@ npm test             # pruebas unitarias (Karma + Jasmine)
 npm run build        # build de producción en dist/
 ```
 
-La URL del backend y el client id de Google están en `src/environments/environment*.ts`.
-El backend solo acepta CORS desde `http://localhost:4200` (`SecurityConfig.corsConfigurationSource`).
+La URL del backend y el client id de Google tienen valores por defecto en `src/environments/environment*.ts`
+y se pueden sobrescribir sin recompilar mediante `config.js` (ver *Despliegue*). El backend acepta CORS
+desde los orígenes de su variable `CORS_ALLOWED_ORIGINS` (por defecto `http://localhost:4200`).
+
+## Despliegue (Laboratorio y Producción)
+
+| Rama | Entorno | Sitio |
+| --- | --- | --- |
+| `lab` | Laboratorio | `https://muisca-unicauca-web-lab.onrender.com` |
+| `main` | Producción | `https://muisca-unicauca-web.onrender.com` |
+
+Al hacer merge en `lab` o `main`, Render reconstruye el sitio tras pasar el CI
+(`.github/workflows/ci.yml`). El build de Render ejecuta:
+
+```bash
+npm ci && npm run build && node scripts/write-runtime-config.mjs
+```
+
+`write-runtime-config.mjs` escribe `config.js` con `API_URL`, `GOOGLE_CLIENT_ID` y `ENVIRONMENT_NAME`
+(este último muestra una insignia "Laboratorio" en la barra superior). La configuración de los cuatro
+servicios está en `render.yaml` del repositorio del backend; la guía paso a paso, en
+`muisca/docs/DESPLIEGUE.md`.
 
 ## Estructura
 
@@ -36,26 +56,28 @@ src/app/
 └─ features/             Una carpeta por caso de uso (todas con lazy loading)
    ├─ auth/              Login (usuario/contraseña y Google) y registro
    ├─ home/              Inicio por rol
-   ├─ catalog/           Catálogo y ejecución de transformaciones
+   ├─ catalog/           Catálogo y ejecución de transformaciones (archivo o modelo guardado)
    ├─ executions/        Historial, detalle, descargas y vista del código generado
+   ├─ models/            Biblioteca de modelos del usuario
    ├─ metamodels/        Metamodelos Ecore
    ├─ atl-modules/       Módulos ATL
    ├─ acceleo-modules/   Plantillas Acceleo
    ├─ transformations/   Definición y publicación del catálogo
    ├─ workspace/         Compilar y probar ATL/Acceleo sin registrar
    ├─ users/             Usuarios y roles (ADMIN)
-   └─ account/           Mi cuenta
+   ├─ settings/          Configuración del sistema: registro abierto y aviso (ADMIN)
+   └─ account/           Mi cuenta: contraseña y eliminación de la cuenta
 ```
 
 ## Roles (replican `SecurityConfig`)
 
 | Sección | USER | MODEL_ENGINEER | ADMIN |
 | --- | :-: | :-: | :-: |
-| Inicio, catálogo, ejecutar, historial propio | ✓ | ✓ | ✓ |
+| Inicio, catálogo, ejecutar, historial propio, biblioteca de modelos, mi cuenta | ✓ | ✓ | ✓ |
 | Historial de todos los usuarios | | | ✓ |
 | Metamodelos, ATL, Acceleo, transformaciones, espacio de trabajo | | ✓ | ✓ |
 | Publicar / retirar transformaciones | | | ✓ |
-| Usuarios y roles | | | ✓ |
+| Usuarios y roles, configuración del sistema | | | ✓ |
 
 Los guards solo mejoran la usabilidad: el backend valida cada petición.
 

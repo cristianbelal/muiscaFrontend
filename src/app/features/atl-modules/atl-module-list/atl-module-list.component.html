@@ -78,6 +78,10 @@
                   <mat-icon>download</mat-icon>
                   <span>Descargar código</span>
                 </button>
+                <button mat-menu-item type="button" (click)="editMetadata(m)" [disabled]="!canModify(m)">
+                  <mat-icon>edit</mat-icon>
+                  <span>Editar nombre y descripción</span>
+                </button>
                 <button mat-menu-item type="button" (click)="updateSource(m)" [disabled]="!canModify(m)">
                   <mat-icon>upload</mat-icon>
                   <span>Actualizar código</span>

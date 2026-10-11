@@ -11,6 +11,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { map } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/auth/auth.service';
 import { CATALOG_MANAGER_ROLES, Role } from '../../core/models';
 import { RoleLabelPipe } from '../../shared/pipes/role-label.pipe';
@@ -53,6 +54,8 @@ export class ShellComponent {
   private readonly sidenav = viewChild.required(MatSidenav);
 
   readonly user = this.auth.user;
+  /** Distingue laboratorio y local de producción (producción no define nombre). */
+  readonly environmentName = environment.environmentName;
   readonly isMobile = toSignal(
     inject(BreakpointObserver)
       .observe('(max-width: 959.98px)')
@@ -72,6 +75,12 @@ export class ShellComponent {
             icon: 'auto_awesome_motion',
             link: '/catalogo',
             description: 'Transformaciones disponibles para sus modelos',
+          },
+          {
+            label: this.auth.isAdmin() ? 'Modelos guardados' : 'Mis modelos',
+            icon: 'folder_open',
+            link: '/modelos',
+            description: 'Biblioteca de modelos para reutilizar',
           },
           { label: historyLabel, icon: 'history', link: '/ejecuciones', description: 'Modelos y contratos generados' },
         ],
@@ -107,6 +116,7 @@ export class ShellComponent {
         roles: ['ADMIN'],
         items: [
           { label: 'Usuarios y roles', icon: 'manage_accounts', link: '/usuarios', description: 'Cuentas y permisos' },
+          { label: 'Configuración', icon: 'tune', link: '/configuracion', description: 'Registro y avisos del sistema' },
         ],
       },
     ];

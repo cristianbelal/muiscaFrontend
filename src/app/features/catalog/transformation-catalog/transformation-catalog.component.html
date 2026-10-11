@@ -33,6 +33,12 @@
       <mat-button-toggle value="code">Generan código</mat-button-toggle>
       <mat-button-toggle value="model">Transforman modelo</mat-button-toggle>
     </mat-button-toggle-group>
+    @if (inputMetamodel(); as input) {
+      <button mat-stroked-button type="button" (click)="inputMetamodel.set(null)" [attr.aria-label]="'Quitar filtro ' + input">
+        Reciben modelos {{ input }}
+        <mat-icon iconPositionEnd>close</mat-icon>
+      </button>
+    }
   </div>
 
   @if (loading()) {

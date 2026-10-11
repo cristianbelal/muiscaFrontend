@@ -1,0 +1,151 @@
+<div class="page page-narrow stack">
+  <app-page-header heading="Mi cuenta" icon="person" subtitle="Sus datos, los permisos de su rol y la seguridad de su cuenta." />
+
+  @if (user(); as current) {
+    <mat-card appearance="outlined">
+      <mat-card-content>
+        <dl class="details">
+          <div>
+            <dt>Usuario</dt>
+            <dd>{{ current.username }}</dd>
+          </div>
+          <div>
+            <dt>Rol</dt>
+            <dd><span class="badge badge-primary">{{ current.role | roleLabel }}</span></dd>
+          </div>
+          <div>
+            <dt>Acceso</dt>
+            <dd>{{ current.localAccount ? 'Usuario y contraseña' : 'Solo Google' }}</dd>
+          </div>
+          <div class="full">
+            <dt>Qué puede hacer</dt>
+            <dd>{{ roleDescription() }}</dd>
+          </div>
+        </dl>
+      </mat-card-content>
+      <mat-card-actions align="end">
+        <button mat-button type="button" (click)="refresh()" [disabled]="refreshing()">
+          <mat-icon>refresh</mat-icon>
+          Actualizar permisos
+        </button>
+        <button mat-flat-button type="button" (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          Cerrar sesión
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <mat-card appearance="outlined">
+      <mat-card-content>
+        <h2 class="card-title">{{ hasPassword() ? 'Cambiar contraseña' : 'Definir una contraseña' }}</h2>
+        @if (!hasPassword()) {
+          <p class="muted">
+            Su cuenta entra con Google. Si define una contraseña también podrá entrar con su usuario y contraseña.
+          </p>
+        }
+        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" novalidate class="form-grid">
+          @if (hasPassword()) {
+            <mat-form-field>
+              <mat-label>Contraseña actual</mat-label>
+              <input
+                matInput
+                formControlName="currentPassword"
+                [type]="hidePasswords() ? 'password' : 'text'"
+                autocomplete="current-password"
+                required
+              />
+              @if (passwordForm.controls.currentPassword.hasError('required')) {
+                <mat-error>Ingrese su contraseña actual.</mat-error>
+              }
+            </mat-form-field>
+          }
+          <mat-form-field>
+            <mat-label>Nueva contraseña</mat-label>
+            <input
+              matInput
+              formControlName="newPassword"
+              [type]="hidePasswords() ? 'password' : 'text'"
+              autocomplete="new-password"
+              required
+            />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="hidePasswords.set(!hidePasswords())"
+              [attr.aria-label]="hidePasswords() ? 'Mostrar contraseñas' : 'Ocultar contraseñas'"
+              [attr.aria-pressed]="!hidePasswords()"
+            >
+              <mat-icon>{{ hidePasswords() ? 'visibility' : 'visibility_off' }}</mat-icon>
+            </button>
+            <mat-hint>Mínimo 6 caracteres.</mat-hint>
+            @if (passwordForm.controls.newPassword.hasError('required')) {
+              <mat-error>Ingrese la nueva contraseña.</mat-error>
+            } @else if (passwordForm.controls.newPassword.hasError('minlength')) {
+              <mat-error>Debe tener al menos 6 caracteres.</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Confirmar nueva contraseña</mat-label>
+            <input
+              matInput
+              formControlName="confirmPassword"
+              [type]="hidePasswords() ? 'password' : 'text'"
+              autocomplete="new-password"
+              required
+            />
+            @if (passwordForm.controls.confirmPassword.hasError('required')) {
+              <mat-error>Repita la nueva contraseña.</mat-error>
+            }
+          </mat-form-field>
+          @if (passwordForm.hasError('passwordMismatch') && passwordForm.controls.confirmPassword.touched) {
+            <div class="callout error" role="alert">
+              <mat-icon aria-hidden="true">error_outline</mat-icon>
+              <p>Las contraseñas no coinciden.</p>
+            </div>
+          }
+          <app-api-error-panel [error]="passwordError()" />
+          <div class="form-actions">
+            <button mat-flat-button type="submit" [disabled]="savingPassword()">Guardar contraseña</button>
+          </div>
+        </form>
+        @if (savingPassword()) {
+          <mat-progress-bar mode="indeterminate" aria-label="Guardando la contraseña" />
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card appearance="outlined" class="danger-zone">
+      <mat-card-content>
+        <h2 class="card-title">Eliminar mi cuenta</h2>
+        @if (isAdmin()) {
+          <p class="muted">
+            Un administrador no puede eliminar su propia cuenta. Pida a otro administrador que lo haga desde
+            <a routerLink="/usuarios">Usuarios y roles</a>.
+          </p>
+        } @else {
+          <p class="muted">
+            Se borran su historial de ejecuciones y su biblioteca de modelos. Si registró metamodelos, módulos o
+            transformaciones en el catálogo, un administrador debe reasignarlos antes.
+          </p>
+          @if (hasPassword()) {
+            <mat-form-field class="full-width">
+              <mat-label>Confirme con su contraseña</mat-label>
+              <input matInput [formControl]="deletePassword" type="password" autocomplete="current-password" />
+              @if (deletePassword.hasError('required')) {
+                <mat-error>Ingrese su contraseña para confirmar.</mat-error>
+              }
+            </mat-form-field>
+          }
+          <app-api-error-panel [error]="deleteError()" />
+          <div class="form-actions">
+            <button mat-stroked-button type="button" class="danger" (click)="deleteAccount()" [disabled]="deleting()">
+              <mat-icon>delete_forever</mat-icon>
+              Eliminar mi cuenta
+            </button>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

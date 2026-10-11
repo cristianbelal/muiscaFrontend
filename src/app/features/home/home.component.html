@@ -1,4 +1,10 @@
 <div class="page stack">
+  @if (publicSettings()?.announcement; as announcement) {
+    <div class="callout info" role="note">
+      <mat-icon aria-hidden="true">campaign</mat-icon>
+      <p>{{ announcement }}</p>
+    </div>
+  }
   <section class="hero">
     <div>
       <h1>Hola, {{ user()?.username }}</h1>

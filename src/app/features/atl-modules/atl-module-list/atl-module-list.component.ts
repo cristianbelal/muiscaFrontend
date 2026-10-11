@@ -107,6 +107,20 @@ export class AtlModuleListComponent implements OnInit {
       .subscribe((updated) => this.afterSave(updated, `Código de "${updated.name}" actualizado.`));
   }
 
+  editMetadata(module: AtlModule): void {
+    this.dialogs
+      .editMetadata({
+        title: `Editar ${module.name}`,
+        name: module.name,
+        description: module.description,
+        save: (request) => this.api.updateMetadata(module.id, request),
+      })
+      .subscribe((updated) => {
+        this.modules.update((list) => list.map((m) => (m.id === updated.id ? updated : m)));
+        this.notifications.success('Módulo ATL actualizado.');
+      });
+  }
+
   download(module: AtlModule): void {
     this.api.downloadSource(module).subscribe();
   }

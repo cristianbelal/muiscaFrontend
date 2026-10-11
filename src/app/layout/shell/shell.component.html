@@ -11,6 +11,9 @@
     <span class="brand-name">MUISCA</span>
     <span class="brand-tagline">Contratos inteligentes dirigidos por modelos</span>
   </a>
+  @if (environmentName) {
+    <span class="env-badge" [attr.aria-label]="'Entorno: ' + environmentName">{{ environmentName }}</span>
+  }
   <span class="spacer"></span>
 
   @if (user(); as current) {

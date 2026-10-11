@@ -1,115 +1,87 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import {
+  AbstractControl,
+  NonNullableFormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
+import { filter, finalize, switchMap } from 'rxjs';
+import { AccountApi } from '../../core/api/account-api.service';
 import { AuthService } from '../../core/auth/auth.service';
-import { asApiError } from '../../core/http/api-error';
+import { ApiError, asApiError } from '../../core/http/api-error';
 import { NotificationService } from '../../core/notifications/notification.service';
-import { ROLE_DESCRIPTIONS } from '../../shared/labels/role-labels';
+import { ApiErrorPanelComponent } from '../../shared/components/api-error-panel/api-error-panel.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { DialogService } from '../../shared/dialogs/dialog.service';
+import { ROLE_DESCRIPTIONS } from '../../shared/labels/role-labels';
 import { RoleLabelPipe } from '../../shared/pipes/role-label.pipe';
 
-/**
- * Datos de la cuenta (GET /auth/validate). El backend no expone autogestión de la cuenta
- * (solo /api/users para ADMIN), por eso los cambios se solicitan a un administrador.
- */
+function passwordsMatch(group: AbstractControl): ValidationErrors | null {
+  const password = group.get('newPassword')?.value;
+  const confirmation = group.get('confirmPassword')?.value;
+  return password && confirmation && password !== confirmation ? { passwordMismatch: true } : null;
+}
+
+/** Datos de la cuenta y autogestión (/api/account): cambiar la contraseña y eliminar la cuenta. */
 @Component({
   selector: 'app-account',
-  imports: [RouterLink, MatCardModule, MatButtonModule, MatIconModule, PageHeaderComponent, RoleLabelPipe],
-  template: `
-    <div class="page page-narrow">
-      <app-page-header heading="Mi cuenta" icon="person" subtitle="Información de su sesión y de los permisos de su rol." />
-
-      @if (user(); as current) {
-        <mat-card appearance="outlined">
-          <mat-card-content>
-            <dl class="details">
-              <div>
-                <dt>Usuario</dt>
-                <dd>{{ current.username }}</dd>
-              </div>
-              <div>
-                <dt>Rol</dt>
-                <dd><span class="badge badge-primary">{{ current.role | roleLabel }}</span></dd>
-              </div>
-              <div>
-                <dt>Tipo de cuenta</dt>
-                <dd>{{ current.localAccount ? 'Usuario y contraseña' : 'Google' }}</dd>
-              </div>
-              <div class="full">
-                <dt>Qué puede hacer</dt>
-                <dd>{{ roleDescription() }}</dd>
-              </div>
-            </dl>
-          </mat-card-content>
-          <mat-card-actions align="end">
-            <button mat-button type="button" (click)="refresh()" [disabled]="refreshing()">
-              <mat-icon>refresh</mat-icon>
-              Actualizar permisos
-            </button>
-            <button mat-flat-button type="button" (click)="logout()">
-              <mat-icon>logout</mat-icon>
-              Cerrar sesión
-            </button>
-          </mat-card-actions>
-        </mat-card>
-
-        <div class="callout info note" role="note">
-          <mat-icon aria-hidden="true">info</mat-icon>
-          @if (isAdmin()) {
-            <p>
-              Para cambiar nombres de usuario, contraseñas o roles use
-              <a routerLink="/usuarios">Usuarios y roles</a>.
-            </p>
-          } @else {
-            <p>
-              Para cambiar su nombre de usuario, su contraseña o su rol, comuníquese con un administrador de MUISCA.
-            </p>
-          }
-        </div>
-      }
-    </div>
-  `,
-  styles: `
-    .details {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 16px 24px;
-      margin: 0;
-    }
-    .details .full {
-      grid-column: 1 / -1;
-    }
-    dt {
-      font: var(--mat-sys-label-medium);
-      color: var(--mat-sys-on-surface-variant);
-    }
-    dd {
-      margin: 4px 0 0;
-      word-break: break-word;
-    }
-    .note {
-      margin-top: 16px;
-    }
-    .note a {
-      color: inherit;
-      font-weight: 500;
-    }
-  `,
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatProgressBarModule,
+    PageHeaderComponent,
+    ApiErrorPanelComponent,
+    RoleLabelPipe,
+  ],
+  templateUrl: './account.component.html',
+  styleUrl: './account.component.css',
 })
 export class AccountComponent {
   private readonly auth = inject(AuthService);
+  private readonly accountApi = inject(AccountApi);
   private readonly notifications = inject(NotificationService);
+  private readonly dialogs = inject(DialogService);
+  private readonly fb = inject(NonNullableFormBuilder);
 
   readonly user = this.auth.user;
   readonly isAdmin = this.auth.isAdmin;
-  readonly refreshing = signal(false);
+  /** Las cuentas de Google aún no tienen contraseña: definen una sin indicar la actual. */
+  readonly hasPassword = computed(() => this.user()?.localAccount ?? false);
   readonly roleDescription = computed(() => {
     const role = this.user()?.role;
     return role ? ROLE_DESCRIPTIONS[role] : '';
   });
+
+  readonly refreshing = signal(false);
+  readonly hidePasswords = signal(true);
+
+  readonly passwordForm = this.fb.group(
+    {
+      currentPassword: [''],
+      newPassword: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(100)]],
+      confirmPassword: ['', [Validators.required]],
+    },
+    { validators: passwordsMatch },
+  );
+  readonly savingPassword = signal(false);
+  readonly passwordError = signal<ApiError | null>(null);
+
+  readonly deletePassword = this.fb.control('');
+  readonly deleting = signal(false);
+  readonly deleteError = signal<ApiError | null>(null);
 
   /** Útil si un administrador acaba de cambiar el rol: el backend lo aplica de inmediato. */
   refresh(): void {
@@ -120,6 +92,66 @@ export class AccountComponent {
       .subscribe({
         next: () => this.notifications.success('Permisos actualizados.'),
         error: (error: unknown) => this.notifications.error(asApiError(error).message),
+      });
+  }
+
+  changePassword(): void {
+    const form = this.passwordForm;
+    if (this.hasPassword() && !form.controls.currentPassword.value) {
+      form.controls.currentPassword.setErrors({ required: true });
+    }
+    if (form.invalid) {
+      form.markAllAsTouched();
+      return;
+    }
+    const { currentPassword, newPassword } = form.getRawValue();
+    this.savingPassword.set(true);
+    this.passwordError.set(null);
+    this.accountApi
+      .changePassword(this.hasPassword() ? currentPassword : null, newPassword)
+      .pipe(
+        switchMap(() => this.auth.refreshProfile()),
+        finalize(() => this.savingPassword.set(false)),
+      )
+      .subscribe({
+        next: () => {
+          form.reset();
+          this.notifications.success('Contraseña actualizada.');
+        },
+        error: (error: unknown) => this.passwordError.set(asApiError(error)),
+      });
+  }
+
+  deleteAccount(): void {
+    if (this.hasPassword() && !this.deletePassword.value) {
+      this.deletePassword.setErrors({ required: true });
+      this.deletePassword.markAsTouched();
+      return;
+    }
+    this.dialogs
+      .confirm({
+        title: 'Eliminar mi cuenta',
+        message:
+          'Se eliminarán su cuenta, su historial de ejecuciones y su biblioteca de modelos. Esta acción no se puede deshacer.',
+        confirmText: 'Eliminar definitivamente',
+        destructive: true,
+      })
+      .pipe(
+        filter(Boolean),
+        switchMap(() => {
+          this.deleting.set(true);
+          this.deleteError.set(null);
+          return this.accountApi
+            .deleteAccount(this.hasPassword() ? this.deletePassword.value : null)
+            .pipe(finalize(() => this.deleting.set(false)));
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.notifications.info('Su cuenta fue eliminada.');
+          this.auth.logout();
+        },
+        error: (error: unknown) => this.deleteError.set(asApiError(error)),
       });
   }
 

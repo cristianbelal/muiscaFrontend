@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, ElementRef, inject, input, signal, viewChild } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -7,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { Router, RouterLink } from '@angular/router';
 import { Observable, finalize } from 'rxjs';
+import { SettingsApi } from '../../../core/api/settings-api.service';
 import { AuthService, safeReturnUrl } from '../../../core/auth/auth.service';
 import { GoogleIdentityService } from '../../../core/auth/google-identity.service';
 import { asApiError } from '../../../core/http/api-error';
@@ -47,6 +49,8 @@ export class LoginComponent implements AfterViewInit {
   readonly hidePassword = signal(true);
   readonly errorMessage = signal('');
   readonly googleUnavailable = signal(false);
+  /** Aviso del administrador y si se permite crear cuentas (GET /api/settings/public). */
+  readonly publicSettings = toSignal(inject(SettingsApi).publicSettings());
 
   ngAfterViewInit(): void {
     this.google

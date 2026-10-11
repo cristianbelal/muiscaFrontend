@@ -92,6 +92,20 @@
     @if (downloading()) {
       <mat-progress-bar mode="indeterminate" aria-label="Descargando archivo" />
     }
+    @if (hasOutputModel()) {
+      <div class="save-model">
+        @if (savedModelName(); as saved) {
+          <span class="badge badge-success"><mat-icon aria-hidden="true">check</mat-icon>Guardado como «{{ saved }}»</span>
+          <a mat-button routerLink="/modelos">Ver mis modelos</a>
+        } @else {
+          <button mat-stroked-button type="button" (click)="saveOutputModel()" [disabled]="savingModel()">
+            <mat-icon>bookmark_add</mat-icon>
+            Guardar modelo transformado en mi biblioteca
+          </button>
+          <span class="muted small">Así podrá usarlo como entrada de otra transformación.</span>
+        }
+      </div>
+    }
   </section>
 
   @if (hasCode()) {

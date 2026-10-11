@@ -3,6 +3,13 @@
     <mat-progress-bar mode="indeterminate" aria-label="Iniciando sesión" />
   }
 
+  @if (publicSettings()?.announcement; as announcement) {
+    <div class="callout info announcement" role="note">
+      <mat-icon aria-hidden="true">campaign</mat-icon>
+      <p>{{ announcement }}</p>
+    </div>
+  }
+
   <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
     <mat-form-field class="full-width">
       <mat-label>Usuario o correo</mat-label>
@@ -55,7 +62,11 @@
     <p class="muted small center">El inicio de sesión con Google no está disponible en este momento.</p>
   }
 
-  <p class="center register">
-    ¿No tiene cuenta? <a routerLink="/registro">Cree una cuenta</a>
-  </p>
+  @if (publicSettings()?.registrationEnabled !== false) {
+    <p class="center register">
+      ¿No tiene cuenta? <a routerLink="/registro">Cree una cuenta</a>
+    </p>
+  } @else {
+    <p class="center register muted small">El registro de cuentas nuevas está cerrado. Solicite una cuenta a un administrador.</p>
+  }
 </app-auth-layout>

@@ -45,3 +45,7 @@ mat-progress-bar {
 .register {
   margin: 24px 0 0;
 }
+
+.announcement {
+  margin-bottom: 16px;
+}

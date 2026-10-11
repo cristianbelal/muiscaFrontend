@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,6 +11,7 @@ import { AcceleoModuleApi } from '../../core/api/acceleo-module-api.service';
 import { AtlModuleApi } from '../../core/api/atl-module-api.service';
 import { ExecutionApi } from '../../core/api/execution-api.service';
 import { MetamodelApi } from '../../core/api/metamodel-api.service';
+import { SettingsApi } from '../../core/api/settings-api.service';
 import { TransformationApi } from '../../core/api/transformation-api.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { ExecutionSummary } from '../../core/models';
@@ -68,6 +70,7 @@ export class HomeComponent implements OnInit {
   readonly recent = signal<ExecutionSummary[]>([]);
   readonly loadingRecent = signal(true);
   readonly stats = signal<CatalogStat[]>([]);
+  readonly publicSettings = toSignal(inject(SettingsApi).publicSettings());
 
   readonly actions = computed<QuickAction[]>(() => {
     const actions: QuickAction[] = [

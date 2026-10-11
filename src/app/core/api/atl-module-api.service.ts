@@ -5,7 +5,7 @@ import { FileDownloadService } from '../files/file-download.service';
 import { apiUrl } from '../http/api-url';
 import { toFormData } from '../http/form-data';
 import { silentErrors } from '../http/http-context';
-import { AtlModule } from '../models';
+import { AtlModule, MetadataRequest } from '../models';
 
 export interface CreateAtlModuleCommand {
   name: string;
@@ -39,6 +39,11 @@ export class AtlModuleApi {
     return this.http.put<AtlModule>(`${this.base}/${id}/source`, toFormData({ atlFile }), {
       context: silentErrors(),
     });
+  }
+
+  /** Cambia nombre y descripción sin modificar el archivo (PATCH /{id}). */
+  updateMetadata(id: number, request: MetadataRequest): Observable<AtlModule> {
+    return this.http.patch<AtlModule>(`${this.base}/${id}`, request, { context: silentErrors() });
   }
 
   delete(id: number): Observable<void> {

@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   NonNullableFormBuilder,
@@ -13,6 +14,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
+import { SettingsApi } from '../../../core/api/settings-api.service';
 import { AuthService, HOME_URL } from '../../../core/auth/auth.service';
 import { ApiError, asApiError } from '../../../core/http/api-error';
 import { NotificationService } from '../../../core/notifications/notification.service';
@@ -76,6 +78,7 @@ export class RegisterComponent {
   readonly loading = signal(false);
   readonly hidePassword = signal(true);
   readonly error = signal<ApiError | null>(null);
+  readonly publicSettings = toSignal(inject(SettingsApi).publicSettings());
 
   submit(): void {
     if (this.form.invalid) {

@@ -3,8 +3,11 @@ import { Component, computed, effect, inject, input, signal } from '@angular/cor
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ExecutionApi } from '../../../core/api/execution-api.service';
+import { StoredModelApi } from '../../../core/api/stored-model-api.service';
+import { NotificationService } from '../../../core/notifications/notification.service';
 import { Execution, ExecutionArtifact, GeneratedFile } from '../../../core/models';
 import { DurationPipe } from '../../pipes/duration.pipe';
 import { CodeViewerComponent } from '../code-viewer/code-viewer.component';
@@ -18,18 +21,32 @@ type DownloadableArtifact = Exclude<ExecutionArtifact, 'generatedFiles'>;
  */
 @Component({
   selector: 'app-execution-result',
-  imports: [DatePipe, MatButtonModule, MatIconModule, MatProgressBarModule, StatusBadgeComponent, CodeViewerComponent, DurationPipe],
+  imports: [
+    DatePipe,
+    RouterLink,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressBarModule,
+    StatusBadgeComponent,
+    CodeViewerComponent,
+    DurationPipe,
+  ],
   templateUrl: './execution-result.component.html',
   styleUrl: './execution-result.component.css',
 })
 export class ExecutionResultComponent {
   private readonly api = inject(ExecutionApi);
+  private readonly modelApi = inject(StoredModelApi);
+  private readonly notifications = inject(NotificationService);
 
   readonly execution = input.required<Execution>();
 
   readonly files = signal<GeneratedFile[]>([]);
   readonly loadingFiles = signal(false);
   readonly downloading = signal<DownloadableArtifact | null>(null);
+  readonly savingModel = signal(false);
+  /** Nombre con el que se guardó el modelo transformado en la biblioteca. */
+  readonly savedModelName = signal<string | null>(null);
 
   readonly succeeded = computed(() => this.execution().status === 'SUCCEEDED');
   readonly hasOutputModel = computed(() => !!this.execution().downloads.outputModel);
@@ -39,6 +56,7 @@ export class ExecutionResultComponent {
     effect(() => {
       const execution = this.execution();
       this.files.set([]);
+      this.savedModelName.set(null);
       if (execution.downloads.generatedFiles) {
         this.loadFiles(execution.id);
       }
@@ -51,6 +69,18 @@ export class ExecutionResultComponent {
       .download(this.execution(), artifact)
       .pipe(finalize(() => this.downloading.set(null)))
       .subscribe();
+  }
+
+  /** Guarda el modelo transformado para usarlo como entrada de otra transformación. */
+  saveOutputModel(): void {
+    this.savingModel.set(true);
+    this.modelApi
+      .createFromExecution(this.execution().id)
+      .pipe(finalize(() => this.savingModel.set(false)))
+      .subscribe((model) => {
+        this.savedModelName.set(model.name);
+        this.notifications.success(`Modelo "${model.name}" guardado en su biblioteca.`);
+      });
   }
 
   private loadFiles(id: number): void {

@@ -47,6 +47,12 @@ export const routes: Routes = [
         loadChildren: () => import('./features/executions/executions.routes').then((m) => m.EXECUTION_ROUTES),
       },
       {
+        path: 'modelos',
+        title: 'Mis modelos',
+        loadComponent: () =>
+          import('./features/models/model-library/model-library.component').then((m) => m.ModelLibraryComponent),
+      },
+      {
         path: 'cuenta',
         title: 'Mi cuenta',
         loadComponent: () => import('./features/account/account.component').then((m) => m.AccountComponent),
@@ -102,6 +108,13 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ADMIN_ONLY },
         loadComponent: () => import('./features/users/user-list/user-list.component').then((m) => m.UserListComponent),
+      },
+      {
+        path: 'configuracion',
+        title: 'Configuración del sistema',
+        canActivate: [roleGuard],
+        data: { roles: ADMIN_ONLY },
+        loadComponent: () => import('./features/settings/settings.component').then((m) => m.SettingsComponent),
       },
     ],
   },

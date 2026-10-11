@@ -87,6 +87,20 @@ export class MetamodelListComponent implements OnInit {
       });
   }
 
+  editMetadata(metamodel: Metamodel): void {
+    this.dialogs
+      .editMetadata({
+        title: `Editar ${metamodel.name}`,
+        name: metamodel.name,
+        description: metamodel.description,
+        save: (request) => this.api.updateMetadata(metamodel.id, request),
+      })
+      .subscribe((updated) => {
+        this.metamodels.update((list) => list.map((m) => (m.id === updated.id ? updated : m)));
+        this.notifications.success('Metamodelo actualizado.');
+      });
+  }
+
   download(metamodel: Metamodel): void {
     this.api.downloadEcore(metamodel).subscribe();
   }

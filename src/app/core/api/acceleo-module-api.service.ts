@@ -5,7 +5,7 @@ import { FileDownloadService } from '../files/file-download.service';
 import { apiUrl } from '../http/api-url';
 import { toFormData } from '../http/form-data';
 import { silentErrors } from '../http/http-context';
-import { AcceleoModule } from '../models';
+import { AcceleoModule, MetadataRequest } from '../models';
 
 export interface CreateAcceleoModuleCommand {
   name: string;
@@ -37,6 +37,11 @@ export class AcceleoModuleApi {
     return this.http.put<AcceleoModule>(`${this.base}/${id}/source`, toFormData({ templateFile }), {
       context: silentErrors(),
     });
+  }
+
+  /** Cambia nombre y descripción sin modificar el archivo (PATCH /{id}). */
+  updateMetadata(id: number, request: MetadataRequest): Observable<AcceleoModule> {
+    return this.http.patch<AcceleoModule>(`${this.base}/${id}`, request, { context: silentErrors() });
   }
 
   delete(id: number): Observable<void> {

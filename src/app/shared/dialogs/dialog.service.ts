@@ -1,9 +1,10 @@
 import { ComponentType } from '@angular/cdk/portal';
 import { Injectable, inject } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { Observable, map } from 'rxjs';
+import { Observable, filter, map } from 'rxjs';
 import { ArtifactProblem } from '../../core/models';
 import { ConfirmDialogComponent, ConfirmDialogData } from './confirm-dialog.component';
+import { MetadataDialogComponent, MetadataDialogData } from './metadata-dialog.component';
 import { ProblemsDialogComponent } from './problems-dialog.component';
 
 /** Punto único para abrir diálogos con tamaños y comportamiento consistentes. */
@@ -33,6 +34,15 @@ export class DialogService {
       width: '640px',
       maxWidth: 'calc(100vw - 32px)',
     });
+  }
+
+  /** Renombrar/describir un recurso; emite el recurso actualizado solo si se guardó. */
+  editMetadata<T>(data: MetadataDialogData<T>): Observable<T> {
+    return this.openForm<MetadataDialogComponent<T>, MetadataDialogData<T>, T>(
+      MetadataDialogComponent,
+      data,
+      '520px',
+    ).pipe(filter((result): result is T => result !== undefined && result !== null));
   }
 
   /** Abre un formulario en diálogo y emite su resultado solo si se guardó algo. */

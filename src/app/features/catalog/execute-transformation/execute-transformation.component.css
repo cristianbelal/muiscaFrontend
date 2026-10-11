@@ -29,3 +29,16 @@
   font-size: 0.9rem;
   font-weight: 500;
 }
+
+.source {
+  margin-bottom: 16px;
+}
+
+mat-checkbox {
+  display: block;
+  margin: -8px 0 8px;
+}
+
+.result-card {
+  scroll-margin-top: 16px;
+}

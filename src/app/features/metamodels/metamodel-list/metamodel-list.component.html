@@ -81,6 +81,16 @@
               <button
                 mat-icon-button
                 type="button"
+                [matTooltip]="canModify(m) ? 'Editar nombre y descripción' : 'Solo el creador o un administrador puede editarlo'"
+                [attr.aria-label]="'Editar ' + m.name"
+                [disabled]="!canModify(m)"
+                (click)="editMetadata(m)"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
                 [matTooltip]="canModify(m) ? 'Eliminar' : 'Solo el creador o un administrador puede eliminarlo'"
                 [attr.aria-label]="'Eliminar ' + m.name"
                 [disabled]="!canModify(m)"
