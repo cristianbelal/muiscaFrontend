@@ -116,9 +116,9 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.executionApi
-      .list()
+      .search({ page: 0, size: RECENT_LIMIT })
       .pipe(finalize(() => this.loadingRecent.set(false)))
-      .subscribe((executions) => this.recent.set(executions.slice(0, RECENT_LIMIT)));
+      .subscribe((page) => this.recent.set(page.content));
 
     if (this.canManageCatalog()) {
       this.loadStats();

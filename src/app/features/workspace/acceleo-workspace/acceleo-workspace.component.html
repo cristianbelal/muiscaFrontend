@@ -10,6 +10,7 @@
           [accept]="accept.ecore"
           hint="El metamodelo de los modelos que recibe la plantilla."
         />
+        <app-registered-metamodel-select [control]="form.controls.metamodel" />
 
         <h2 class="block-title">Modelo de prueba</h2>
         <app-file-picker formControlName="inputModel" label="Modelo de entrada (.xmi)" [accept]="accept.model" />

@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, input, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, input, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,6 +10,7 @@ import { ExecutionApi } from '../../../core/api/execution-api.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { Execution } from '../../../core/models';
 import { ExecutionResultComponent } from '../../../shared/components/execution-result/execution-result.component';
+import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { DialogService } from '../../../shared/dialogs/dialog.service';
 
@@ -23,6 +25,7 @@ import { DialogService } from '../../../shared/dialogs/dialog.service';
     MatProgressBarModule,
     PageHeaderComponent,
     ExecutionResultComponent,
+    StatusBadgeComponent,
   ],
   template: `
     <div class="page page-narrow">
@@ -48,6 +51,13 @@ import { DialogService } from '../../../shared/dialogs/dialog.service';
         </app-page-header>
         <mat-card appearance="outlined">
           <mat-card-content>
+            @if (current.status === 'RUNNING') {
+              <div class="running" role="status" aria-live="polite">
+                <app-status-badge [status]="current.status" [stage]="current.stage" />
+                <span class="muted">La transformación sigue en curso; esta página se actualiza sola.</span>
+              </div>
+              <mat-progress-bar mode="indeterminate" aria-label="Transformación en curso" />
+            }
             <app-execution-result [execution]="current" />
           </mat-card-content>
         </mat-card>
@@ -63,6 +73,13 @@ import { DialogService } from '../../../shared/dialogs/dialog.service';
     .back {
       margin: 0 0 12px -8px;
     }
+    .running {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
     .danger {
       --mdc-outlined-button-label-text-color: var(--mat-sys-error);
     }
@@ -73,6 +90,7 @@ export class ExecutionDetailComponent implements OnInit {
   private readonly dialogs = inject(DialogService);
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly id = input.required<string>();
   readonly execution = signal<Execution | null>(null);
@@ -82,7 +100,23 @@ export class ExecutionDetailComponent implements OnInit {
     this.api
       .get(Number(this.id()))
       .pipe(finalize(() => this.loading.set(false)))
-      .subscribe({ next: (execution) => this.execution.set(execution), error: () => this.execution.set(null) });
+      .subscribe({
+        next: (execution) => {
+          this.execution.set(execution);
+          if (execution.status === 'RUNNING') {
+            this.follow(execution.id);
+          }
+        },
+        error: () => this.execution.set(null),
+      });
+  }
+
+  /** Mientras siga en curso, se actualiza hasta que termine. */
+  private follow(id: number): void {
+    this.api
+      .watch(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((execution) => this.execution.set(execution));
   }
 
   delete(execution: Execution): void {

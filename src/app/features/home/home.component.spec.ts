@@ -17,7 +17,9 @@ describe('HomeComponent', () => {
   });
 
   it('invita a ejecutar la primera transformación cuando no hay historial', () => {
-    TestBed.inject(HttpTestingController).expectOne(`${environment.apiUrl}/api/executions`).flush([]);
+    TestBed.inject(HttpTestingController)
+      .expectOne(`${environment.apiUrl}/api/executions/search?page=0&size=5`)
+      .flush({ content: [], page: 0, size: 5, totalElements: 0, totalPages: 0 });
     fixture.detectChanges();
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Aún no ha ejecutado transformaciones');
   });

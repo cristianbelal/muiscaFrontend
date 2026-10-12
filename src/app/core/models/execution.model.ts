@@ -1,7 +1,10 @@
 import { IsoDateTime } from './common.model';
 
-/** domain/model/ExecutionStatus.java */
-export type ExecutionStatus = 'SUCCEEDED' | 'FAILED';
+/** domain/model/ExecutionStatus.java. RUNNING: en cola o procesándose en segundo plano. */
+export type ExecutionStatus = 'RUNNING' | 'SUCCEEDED' | 'FAILED';
+
+/** domain/model/ExecutionStage.java: etapa en curso mientras está RUNNING. */
+export type ExecutionStage = 'QUEUED' | 'ATL' | 'ACCELEO';
 
 /** domain/repository/ExecutionSummary.java: vista del historial sin archivos. */
 export interface ExecutionSummary {
@@ -10,6 +13,7 @@ export interface ExecutionSummary {
   transformationName: string;
   executedBy: string;
   status: ExecutionStatus;
+  stage: ExecutionStage | null;
   inputModelName: string;
   errorMessage: string | null;
   durationMs: number;
@@ -26,6 +30,7 @@ export interface Execution {
   transformationName: string;
   executedBy: string;
   status: ExecutionStatus;
+  stage: ExecutionStage | null;
   inputModelName: string;
   outputModelName: string | null;
   generatedFiles: string[];
@@ -39,4 +44,20 @@ export interface Execution {
 export interface GeneratedFile {
   path: string;
   content: string;
+}
+
+/** dto/PageResponse.java */
+export interface Page<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface ExecutionSearch {
+  page: number;
+  size: number;
+  status?: ExecutionStatus | null;
+  q?: string | null;
 }

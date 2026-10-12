@@ -59,6 +59,14 @@ export class TransformationApi {
     return this.run(id, toFormData({ modelId }));
   }
 
+  /**
+   * Inicia la ejecución en segundo plano (async=true): el backend valida el modelo, responde 202
+   * con la ejecución RUNNING y se sigue con ExecutionApi.watch(). Recibe un archivo o un modelo guardado.
+   */
+  start(id: number, model: { inputModel: File } | { modelId: number }): Observable<Execution> {
+    return this.run(id, toFormData({ ...model, async: true }));
+  }
+
   private run(id: number, body: FormData): Observable<Execution> {
     return this.http
       .post<Execution>(`${this.base}/${id}/executions`, body, { context: silentErrors() })

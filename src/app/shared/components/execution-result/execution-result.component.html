@@ -12,6 +12,11 @@
         }
       </p>
     </div>
+  } @else if (current.status === 'RUNNING') {
+    <div class="callout info" role="status">
+      <mat-icon aria-hidden="true">hourglass_top</mat-icon>
+      <p>La transformación está en curso. Los archivos aparecerán aquí cuando termine.</p>
+    </div>
   } @else {
     <div class="callout error" role="alert">
       <mat-icon aria-hidden="true">error_outline</mat-icon>
@@ -30,7 +35,7 @@
   <dl class="meta">
     <div>
       <dt>Estado</dt>
-      <dd><app-status-badge [status]="current.status" /></dd>
+      <dd><app-status-badge [status]="current.status" [stage]="current.stage" /></dd>
     </div>
     <div>
       <dt>Transformación</dt>

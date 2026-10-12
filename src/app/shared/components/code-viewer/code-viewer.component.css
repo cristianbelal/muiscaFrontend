@@ -88,3 +88,9 @@ pre {
   line-height: 1.5;
   tab-size: 4;
 }
+
+/* El tema de highlight.js trae fondo y relleno propios; se usa el del visor. */
+.hljs {
+  padding: 0;
+  background: transparent;
+}

@@ -7,18 +7,24 @@
 
         <h2 class="block-title">Metamodelos</h2>
         <div class="pair">
-          <app-file-picker
-            formControlName="sourceMetamodel"
-            label="Metamodelo de origen (.ecore)"
-            [accept]="accept.ecore"
-            hint="El del modelo de entrada (IN)."
-          />
-          <app-file-picker
-            formControlName="targetMetamodel"
-            label="Metamodelo de destino (.ecore)"
-            [accept]="accept.ecore"
-            hint="El del modelo de salida (OUT)."
-          />
+          <div>
+            <app-file-picker
+              formControlName="sourceMetamodel"
+              label="Metamodelo de origen (.ecore)"
+              [accept]="accept.ecore"
+              hint="El del modelo de entrada (IN)."
+            />
+            <app-registered-metamodel-select [control]="form.controls.sourceMetamodel" />
+          </div>
+          <div>
+            <app-file-picker
+              formControlName="targetMetamodel"
+              label="Metamodelo de destino (.ecore)"
+              [accept]="accept.ecore"
+              hint="El del modelo de salida (OUT)."
+            />
+            <app-registered-metamodel-select [control]="form.controls.targetMetamodel" />
+          </div>
         </div>
 
         <h2 class="block-title">Modelo de prueba</h2>

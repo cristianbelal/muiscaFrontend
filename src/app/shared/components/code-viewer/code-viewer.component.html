@@ -36,7 +36,7 @@
           <mat-icon>download</mat-icon>
         </button>
       </div>
-      <pre tabindex="0" [attr.aria-label]="'Contenido de ' + file.path"><code>{{ file.content }}</code></pre>
+      <pre tabindex="0" [attr.aria-label]="'Contenido de ' + file.path">@if (highlighted(); as html) {<code class="hljs" [innerHTML]="html"></code>} @else {<code>{{ file.content }}</code>}</pre>
     </div>
   }
 </div>

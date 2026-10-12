@@ -93,7 +93,7 @@
         @for (execution of recent(); track execution.id) {
           <li>
             <a [routerLink]="['/ejecuciones', execution.id]">
-              <app-status-badge [status]="execution.status" />
+              <app-status-badge [status]="execution.status" [stage]="execution.stage" />
               <span class="recent-name">{{ execution.transformationName }}</span>
               <span class="muted small recent-meta">
                 {{ execution.inputModelName }} · {{ execution.createdAt | date: 'short' }} ·

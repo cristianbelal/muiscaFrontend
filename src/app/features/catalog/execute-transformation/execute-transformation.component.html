@@ -61,6 +61,22 @@
             <mat-checkbox [ngModel]="saveToLibrary()" (ngModelChange)="saveToLibrary.set($event)" name="save">
               Guardar también este modelo en mi biblioteca
             </mat-checkbox>
+            @if (compatibleSamples().length) {
+              <div class="samples">
+                <span class="muted small">¿No tiene un modelo? Pruebe con un ejemplo:</span>
+                @for (sample of compatibleSamples(); track sample.fileName) {
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    (click)="useSample(sample)"
+                    [disabled]="loadingSample() || running()"
+                  >
+                    <mat-icon>science</mat-icon>
+                    {{ sample.fileName }}
+                  </button>
+                }
+              </div>
+            }
           } @else if (compatibleModels().length) {
             <mat-form-field class="full-width">
               <mat-label>Modelo guardado</mat-label>
@@ -96,8 +112,12 @@
           </div>
         </form>
         @if (running()) {
-          <mat-progress-bar mode="indeterminate" aria-label="Ejecutando la transformación" />
-          <p class="muted small" role="status">Esto puede tardar unos segundos según el tamaño del modelo.</p>
+          @if (progress(); as current) {
+            <app-execution-progress [stage]="current.stage" [hasAtl]="t.producesModel" [hasAcceleo]="t.producesCode" />
+          } @else {
+            <mat-progress-bar mode="indeterminate" aria-label="Enviando el modelo" />
+            <p class="muted small" role="status">Validando el modelo…</p>
+          }
         }
       </mat-card-content>
     </mat-card>

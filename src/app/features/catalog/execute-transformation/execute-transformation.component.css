@@ -42,3 +42,11 @@ mat-checkbox {
 .result-card {
   scroll-margin-top: 16px;
 }
+
+.samples {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+}

@@ -1,5 +1,5 @@
 import { HttpTestingController } from '@angular/common/http/testing';
-import { ComponentFixture, TestBed, fakeAsync, flush } from '@angular/core/testing';
+import { ComponentFixture, TestBed, discardPeriodicTasks, fakeAsync, flush, tick } from '@angular/core/testing';
 import { environment } from '../../../../environments/environment';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { provideTestEnvironment } from '../../../testing/test-providers';
@@ -10,6 +10,7 @@ describe('ExecuteTransformationComponent', () => {
   let http: HttpTestingController;
   let notifications: jasmine.SpyObj<NotificationService>;
   const executionsUrl = `${environment.apiUrl}/api/transformations/3/executions`;
+  const running = { id: 20, status: 'RUNNING', stage: 'QUEUED', transformationName: 'Solidity', generatedFiles: [], downloads: {} };
 
   beforeEach(async () => {
     notifications = jasmine.createSpyObj('NotificationService', ['success', 'error', 'info']);
@@ -40,8 +41,20 @@ describe('ExecuteTransformationComponent', () => {
       { id: 8, name: 'Mi contrato', metamodel: { id: 3, name: 'EthereumSolidity' }, fileName: 'c.xmi' },
       { id: 9, name: 'Otro', metamodel: { id: 1, name: 'HyperledgerGo' }, fileName: 'g.xmi' },
     ]);
+    http.expectOne(`${environment.apiUrl}/api/samples`).flush([
+      { fileName: 'SContractPatientSol.xmi', metamodel: { id: 3, name: 'EthereumSolidity' }, sizeBytes: 900 },
+      { fileName: 'SCGo.xmi', metamodel: { id: 1, name: 'HyperledgerGo' }, sizeBytes: 900 },
+    ]);
     fixture.detectChanges();
   });
+
+  function startWithFile(): void {
+    fixture.componentInstance.inputModel.setValue(new File(['<xmi/>'], 'c.xmi'));
+    fixture.componentInstance.run();
+    const request = http.expectOne(executionsUrl);
+    expect((request.request.body as FormData).get('async')).toBe('true');
+    request.flush(running, { status: 202, statusText: 'Accepted' });
+  }
 
   it('indica qué metamodelo debe cumplir el modelo', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('EthereumSolidity');
@@ -53,38 +66,51 @@ describe('ExecuteTransformationComponent', () => {
     expect(fixture.componentInstance.inputModel.touched).toBeTrue();
   });
 
-  it('solo ofrece los modelos guardados compatibles con la transformación', () => {
+  it('solo ofrece los modelos guardados y los ejemplos compatibles', () => {
     expect(fixture.componentInstance.compatibleModels().map((m) => m.id)).toEqual([8]);
+    expect(fixture.componentInstance.compatibleSamples().map((s) => s.fileName)).toEqual(['SContractPatientSol.xmi']);
   });
 
-  it('avisa con una notificación cuando la transformación termina bien', fakeAsync(() => {
-    const component = fixture.componentInstance;
-    component.inputModel.setValue(new File(['<xmi/>'], 'c.xmi'));
-    component.run();
-    http.expectOne(executionsUrl).flush({
-      id: 20,
+  it('sigue el avance en segundo plano y avisa cuando termina bien', fakeAsync(() => {
+    startWithFile();
+    tick(0);
+    http.expectOne(`${environment.apiUrl}/api/executions/20`).flush({ ...running, stage: 'ACCELEO' });
+    expect(fixture.componentInstance.progress()?.stage).toBe('ACCELEO');
+
+    tick(1500);
+    http.expectOne(`${environment.apiUrl}/api/executions/20`).flush({
+      ...running,
       status: 'SUCCEEDED',
-      transformationName: 'Generar código Solidity (Ethereum)',
-      outputModelName: null,
+      stage: null,
       generatedFiles: ['Patient.sol'],
       durationMs: 1200,
-      downloads: {},
     });
     flush();
+    discardPeriodicTasks();
     expect(notifications.success).toHaveBeenCalledWith(jasmine.stringContaining('Transformación exitosa'));
-    expect(component.execution()?.id).toBe(20);
+    expect(fixture.componentInstance.execution()?.status).toBe('SUCCEEDED');
+    expect(fixture.componentInstance.running()).toBeFalse();
   }));
 
-  it('avisa con una notificación de error cuando el motor falla (422)', fakeAsync(() => {
-    const component = fixture.componentInstance;
-    component.inputModel.setValue(new File(['<xmi/>'], 'c.xmi'));
-    component.run();
+  it('avisa con una notificación de error cuando el motor falla', fakeAsync(() => {
+    startWithFile();
+    tick(0);
+    http.expectOne(`${environment.apiUrl}/api/executions/20`).flush({ ...running, status: 'FAILED', stage: null });
+    flush();
+    discardPeriodicTasks();
+    expect(notifications.error).toHaveBeenCalledWith(jasmine.stringContaining('falló'));
+  }));
+
+  it('muestra el error de validación sin iniciar la ejecución (400)', fakeAsync(() => {
+    fixture.componentInstance.inputModel.setValue(new File(['<xmi/>'], 'c.xmi'));
+    fixture.componentInstance.run();
     http.expectOne(executionsUrl).flush(
-      { id: 21, status: 'FAILED', transformationName: 'x', errorMessage: 'NPE', generatedFiles: [], downloads: {} },
-      { status: 422, statusText: 'Unprocessable Entity' },
+      { message: 'El modelo no pertenece a EthereumSolidity' },
+      { status: 400, statusText: 'Bad Request' },
     );
     flush();
-    expect(notifications.error).toHaveBeenCalledWith(jasmine.stringContaining('falló'));
+    expect(fixture.componentInstance.error()?.message).toContain('EthereumSolidity');
+    expect(fixture.componentInstance.running()).toBeFalse();
   }));
 
   it('ejecuta con un modelo de la biblioteca enviando modelId', () => {
@@ -95,5 +121,14 @@ describe('ExecuteTransformationComponent', () => {
     const request = http.expectOne(executionsUrl);
     expect((request.request.body as FormData).get('modelId')).toBe('8');
     expect((request.request.body as FormData).has('inputModel')).toBeFalse();
+  });
+
+  it('carga un modelo de ejemplo como archivo de entrada', () => {
+    const component = fixture.componentInstance;
+    component.useSample(component.compatibleSamples()[0]);
+    http
+      .expectOne(`${environment.apiUrl}/api/samples/SContractPatientSol.xmi`)
+      .flush(new Blob(['<xmi/>']), { headers: { 'Content-Disposition': 'attachment; filename="SContractPatientSol.xmi"' } });
+    expect(component.inputModel.value?.name).toBe('SContractPatientSol.xmi');
   });
 });

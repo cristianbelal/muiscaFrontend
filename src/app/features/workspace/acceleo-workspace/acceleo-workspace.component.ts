@@ -13,6 +13,7 @@ import { ApiErrorPanelComponent } from '../../../shared/components/api-error-pan
 import { FilePickerComponent } from '../../../shared/components/file-picker/file-picker.component';
 import { ProblemListComponent } from '../../../shared/components/problem-list/problem-list.component';
 import { FILE_TYPES, acceptOf, fileValidators } from '../../../shared/forms/file-validators';
+import { RegisteredMetamodelSelectComponent } from '../registered-metamodel-select/registered-metamodel-select.component';
 import { baseName } from '../../../shared/forms/form-utils';
 import { FileSizePipe } from '../../../shared/pipes/file-size.pipe';
 
@@ -30,6 +31,7 @@ function fileControl(extensions: readonly string[]): FormControl<File | null> {
     MatIconModule,
     MatProgressBarModule,
     FilePickerComponent,
+    RegisteredMetamodelSelectComponent,
     ProblemListComponent,
     ApiErrorPanelComponent,
     FileSizePipe,

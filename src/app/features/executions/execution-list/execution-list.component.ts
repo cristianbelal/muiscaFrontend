@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -12,7 +13,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterLink } from '@angular/router';
-import { filter, finalize, switchMap } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, filter, finalize, switchMap } from 'rxjs';
 import { ExecutionApi } from '../../../core/api/execution-api.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
@@ -25,7 +26,12 @@ import { DurationPipe } from '../../../shared/pipes/duration.pipe';
 
 type StatusFilter = 'ALL' | ExecutionStatus;
 
-/** Historial (GET /api/executions): cada usuario ve las suyas y el administrador, todas. */
+const SEARCH_DEBOUNCE_MS = 350;
+
+/**
+ * Historial (GET /api/executions/search): cada usuario ve las suyas y el administrador, todas.
+ * La paginación, el filtro por estado y la búsqueda se resuelven en el servidor.
+ */
 @Component({
   selector: 'app-execution-list',
   imports: [
@@ -54,14 +60,21 @@ export class ExecutionListComponent implements OnInit {
   private readonly dialogs = inject(DialogService);
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly searchInput = new Subject<string>();
   readonly isAdmin = inject(AuthService).isAdmin;
 
   readonly executions = signal<ExecutionSummary[]>([]);
+  readonly total = signal(0);
   readonly loading = signal(true);
   readonly search = signal('');
   readonly status = signal<StatusFilter>('ALL');
   readonly pageIndex = signal(0);
   readonly pageSize = signal(10);
+  /** Sin filtros y sin resultados: el usuario aún no ha ejecutado nada. */
+  readonly neverExecuted = computed(
+    () => !this.loading() && this.total() === 0 && !this.search().trim() && this.status() === 'ALL',
+  );
 
   readonly columns = computed(() =>
     this.isAdmin()
@@ -69,47 +82,47 @@ export class ExecutionListComponent implements OnInit {
       : ['createdAt', 'transformation', 'input', 'status', 'duration', 'actions'],
   );
 
-  readonly filtered = computed(() => {
-    const term = this.search().trim().toLowerCase();
-    const status = this.status();
-    return this.executions().filter(
-      (e) =>
-        (status === 'ALL' || e.status === status) &&
-        (!term ||
-          [e.transformationName, e.inputModelName, e.executedBy].some((value) => value.toLowerCase().includes(term))),
-    );
-  });
-
-  readonly page = computed(() => {
-    const start = this.pageIndex() * this.pageSize();
-    return this.filtered().slice(start, start + this.pageSize());
-  });
-
   ngOnInit(): void {
+    this.searchInput
+      .pipe(debounceTime(SEARCH_DEBOUNCE_MS), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.pageIndex.set(0);
+        this.load();
+      });
     this.load();
   }
 
   load(): void {
     this.loading.set(true);
     this.api
-      .list()
+      .search({
+        page: this.pageIndex(),
+        size: this.pageSize(),
+        status: this.status() === 'ALL' ? null : (this.status() as ExecutionStatus),
+        q: this.search(),
+      })
       .pipe(finalize(() => this.loading.set(false)))
-      .subscribe((executions) => this.executions.set(executions));
+      .subscribe((page) => {
+        this.executions.set(page.content);
+        this.total.set(page.totalElements);
+      });
   }
 
   setSearch(value: string): void {
     this.search.set(value);
-    this.pageIndex.set(0);
+    this.searchInput.next(value);
   }
 
   setStatus(value: StatusFilter): void {
     this.status.set(value);
     this.pageIndex.set(0);
+    this.load();
   }
 
   onPage(event: PageEvent): void {
     this.pageIndex.set(event.pageIndex);
     this.pageSize.set(event.pageSize);
+    this.load();
   }
 
   open(execution: ExecutionSummary): void {
@@ -130,8 +143,12 @@ export class ExecutionListComponent implements OnInit {
         switchMap(() => this.api.delete(execution.id)),
       )
       .subscribe(() => {
-        this.executions.update((list) => list.filter((e) => e.id !== execution.id));
         this.notifications.success('Ejecución eliminada.');
+        // Si era el último de la página, se vuelve a la anterior.
+        if (this.executions().length === 1 && this.pageIndex() > 0) {
+          this.pageIndex.update((page) => page - 1);
+        }
+        this.load();
       });
   }
 }

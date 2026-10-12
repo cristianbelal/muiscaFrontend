@@ -38,3 +38,10 @@ export interface SettingsRequest {
   registrationEnabled: boolean;
   announcement: string | null;
 }
+
+/** dto/SampleModelResponse.java: modelo de ejemplo incluido en MUISCA. */
+export interface SampleModel {
+  fileName: string;
+  metamodel: Reference;
+  sizeBytes: number;
+}

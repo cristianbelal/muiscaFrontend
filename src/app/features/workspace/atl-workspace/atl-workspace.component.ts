@@ -14,6 +14,7 @@ import { CodeViewerComponent } from '../../../shared/components/code-viewer/code
 import { FilePickerComponent } from '../../../shared/components/file-picker/file-picker.component';
 import { ProblemListComponent } from '../../../shared/components/problem-list/problem-list.component';
 import { FILE_TYPES, acceptOf, fileValidators } from '../../../shared/forms/file-validators';
+import { RegisteredMetamodelSelectComponent } from '../registered-metamodel-select/registered-metamodel-select.component';
 import { baseName } from '../../../shared/forms/form-utils';
 
 function fileControl(extensions: readonly string[]): FormControl<File | null> {
@@ -33,6 +34,7 @@ function fileControl(extensions: readonly string[]): FormControl<File | null> {
     MatIconModule,
     MatProgressBarModule,
     FilePickerComponent,
+    RegisteredMetamodelSelectComponent,
     ProblemListComponent,
     ApiErrorPanelComponent,
     CodeViewerComponent,

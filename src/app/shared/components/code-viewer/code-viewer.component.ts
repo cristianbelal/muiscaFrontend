@@ -6,6 +6,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { FileDownloadService } from '../../../core/files/file-download.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { GeneratedFile } from '../../../core/models';
+import { highlight } from './syntax-highlighter';
 
 const LANGUAGES: Record<string, string> = {
   sol: 'Solidity',
@@ -38,12 +39,26 @@ export class CodeViewerComponent {
   readonly selectedIndex = signal(0);
   readonly selected = computed<GeneratedFile | undefined>(() => this.files()[this.selectedIndex()]);
   readonly language = computed(() => languageOf(this.selected()?.path ?? ''));
+  /** HTML con resaltado de sintaxis del archivo elegido; null mientras carga o si no aplica. */
+  readonly highlighted = signal<string | null>(null);
 
   constructor() {
     // Si cambia la lista (otra ejecución), se vuelve al primer archivo.
     effect(() => {
       this.files();
       this.selectedIndex.set(0);
+    });
+    effect(() => {
+      const file = this.selected();
+      this.highlighted.set(null);
+      if (file) {
+        // Si el usuario cambia de archivo antes de terminar, se descarta el resultado viejo.
+        highlight(file.path, file.content).then((html) => {
+          if (this.selected() === file) {
+            this.highlighted.set(html);
+          }
+        });
+      }
     });
   }
 
