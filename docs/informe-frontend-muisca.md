@@ -406,3 +406,35 @@ Las dependencias van solo hacia abajo: `features → shared → core`. `core` no
    cargada bajo demanda.
 6. **Internacionalización** con `@angular/localize` si se requiere una versión en inglés para
    publicaciones académicas.
+
+---
+
+## 10. Actualización (2026-10-11 y 2026-10-12): prototipo completo y desplegado
+
+Con autorización para modificar el backend, se cerraron los pendientes de la sección 7 y se
+implementaron las recomendaciones de la sección 9.
+
+| Antes pendiente / recomendado | Estado |
+| --- | --- |
+| Autogestión de la cuenta | Hecho: `/api/account` (cambiar contraseña, eliminar la propia cuenta) y pantalla Mi cuenta |
+| Biblioteca de modelos | Hecho: `/api/models`; el metamodelo se detecta por el nsURI; se ejecuta desde un modelo guardado y se guarda el modelo transformado para encadenar transformaciones |
+| Configuración del sistema | Hecho: `/api/settings` (registro abierto/cerrado, aviso global) y pantalla Configuración (ADMIN) |
+| Editar nombre/descripción de metamodelos y módulos | Hecho: `PATCH` en los tres recursos |
+| Ejecución asíncrona con progreso | Hecho: `?async=true` (202 RUNNING), etapas QUEUED → ATL → ACCELEO, cola de un hilo para 512 MB |
+| Paginación del historial en el backend | Hecho: `/api/executions/search` con filtros por estado y texto |
+| Espacio de trabajo con metamodelos registrados | Hecho: selector que descarga el `.ecore` del catálogo |
+| Resaltado de sintaxis | Hecho: highlight.js + Solidity, cargado bajo demanda |
+| Modelo de ejemplo de Solidity | Ya existía (`SContractPatientSol.xmi`); ahora los ejemplos se ofrecen en la pantalla de ejecución |
+| Pruebas E2E en CI | Hecho: prueba de integración de punta a punta de la API (H2) en GitHub Actions |
+| Errores 500 sin detalles internos | Hecho |
+| Aviso del resultado de la ejecución | Hecho: notificación de éxito/fallo y desplazamiento al resultado |
+| Sesión en cookie httpOnly | No implementado: frontend y API están en subdominios distintos de `onrender.com` (sufijo público), así que la cookie sería de terceros y los navegadores la bloquean. Requiere servir ambos bajo un mismo dominio |
+
+**Base de datos.** El backend corre sobre MySQL y PostgreSQL sin cambios de código. En la nube
+usa PostgreSQL (Render) y en desarrollo, MySQL. El ambiente de laboratorio detectó un defecto que
+solo se manifiesta en PostgreSQL (los `NULL` de columnas binarias); se corrigió antes de pasar a
+producción.
+
+**Despliegue.** Render (plan gratuito): dos entornos, Laboratorio (rama `lab`) y Producción
+(rama `main`), con despliegue automático al hacer merge si el CI pasa. Detalle en
+`muisca/docs/DESPLIEGUE.md`.

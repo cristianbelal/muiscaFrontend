@@ -1,6 +1,12 @@
 <app-auth-layout heading="Iniciar sesión" subtitle="Ingrese para transformar sus modelos en contratos inteligentes.">
   @if (loading()) {
     <mat-progress-bar mode="indeterminate" aria-label="Iniciando sesión" />
+    @if (slowServer()) {
+      <div class="callout info announcement" role="status">
+        <mat-icon aria-hidden="true">hourglass_top</mat-icon>
+        <p>El servidor se está activando tras un rato sin uso. Puede tardar hasta 2 minutos; no cierre la página.</p>
+      </div>
+    }
   }
 
   @if (publicSettings()?.announcement; as announcement) {
