@@ -15,6 +15,8 @@ import { asApiError } from '../../../core/http/api-error';
 import { User } from '../../../core/models';
 import { AuthLayoutComponent } from '../auth-layout/auth-layout.component';
 
+const SLOW_SERVER_MS = 5000;
+
 /** Inicio de sesión con usuario/contraseña (POST /auth/login) o con Google (POST /oauth/google). */
 @Component({
   selector: 'app-login',
@@ -49,6 +51,8 @@ export class LoginComponent implements AfterViewInit {
   readonly hidePassword = signal(true);
   readonly errorMessage = signal('');
   readonly googleUnavailable = signal(false);
+  /** El backend del plan gratuito puede tardar en despertar: se avisa si la respuesta demora. */
+  readonly slowServer = signal(false);
   /** Aviso del administrador y si se permite crear cuentas (GET /api/settings/public). */
   readonly publicSettings = toSignal(inject(SettingsApi).publicSettings());
 
@@ -78,7 +82,16 @@ export class LoginComponent implements AfterViewInit {
   private authenticate(request: Observable<User>): void {
     this.loading.set(true);
     this.errorMessage.set('');
-    request.pipe(finalize(() => this.loading.set(false))).subscribe({
+    const slowTimer = setTimeout(() => this.slowServer.set(true), SLOW_SERVER_MS);
+    request
+      .pipe(
+        finalize(() => {
+          clearTimeout(slowTimer);
+          this.loading.set(false);
+          this.slowServer.set(false);
+        }),
+      )
+      .subscribe({
       next: () => this.router.navigateByUrl(safeReturnUrl(this.returnUrl())),
       error: (error: unknown) => this.errorMessage.set(asApiError(error).message),
     });
