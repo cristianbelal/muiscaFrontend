@@ -1,0 +1,62 @@
+<div
+  class="picker"
+  [class.dragging]="dragging()"
+  [class.invalid]="showError"
+  [class.disabled]="disabled()"
+  [class.has-file]="file()"
+  (dragover)="onDragOver($event)"
+  (dragleave)="dragging.set(false)"
+  (drop)="onDrop($event)"
+>
+  <mat-icon class="lead" aria-hidden="true">{{ file() ? 'description' : 'upload_file' }}</mat-icon>
+
+  <div class="text">
+    <span class="label" [id]="id + '-label'">
+      {{ label() }}
+      @if (required) {
+        <span class="required" aria-hidden="true">*</span>
+      }
+    </span>
+    @if (file(); as selected) {
+      <span class="name">{{ selected.name }}</span>
+      <span class="meta">{{ selected.size | fileSize }}</span>
+    } @else {
+      <span class="meta" [id]="id + '-hint'">
+        {{ hint() || 'Arrastre el archivo aquí o selecciónelo.' }}
+        @if (accept()) {
+          <span>Formato: {{ accept() }}</span>
+        }
+      </span>
+    }
+  </div>
+
+  <div class="actions">
+    <button
+      mat-stroked-button
+      type="button"
+      [disabled]="disabled()"
+      [attr.aria-describedby]="id + '-label'"
+      (click)="input.click()"
+    >
+      {{ file() ? 'Cambiar' : 'Seleccionar' }}
+    </button>
+    @if (file() && !disabled()) {
+      <button mat-icon-button type="button" (click)="clear()" [attr.aria-label]="'Quitar el archivo ' + file()!.name">
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </div>
+
+  <input
+    #input
+    type="file"
+    class="visually-hidden"
+    tabindex="-1"
+    aria-hidden="true"
+    [accept]="accept()"
+    (change)="onSelect(input)"
+  />
+</div>
+@if (showError) {
+  <div class="error" role="alert">{{ errorMessage }}</div>
+}

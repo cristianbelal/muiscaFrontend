@@ -1,0 +1,99 @@
+<div class="workspace">
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="run()" novalidate>
+        <h2 class="block-title">Plantilla y metamodelo</h2>
+        <app-file-picker formControlName="templateFile" label="Plantilla Acceleo (.mtl)" [accept]="accept.mtl" />
+        <app-file-picker
+          formControlName="metamodel"
+          label="Metamodelo (.ecore)"
+          [accept]="accept.ecore"
+          hint="El metamodelo de los modelos que recibe la plantilla."
+        />
+        <app-registered-metamodel-select [control]="form.controls.metamodel" />
+
+        <h2 class="block-title">Modelo de prueba</h2>
+        <app-file-picker formControlName="inputModel" label="Modelo de entrada (.xmi)" [accept]="accept.model" />
+
+        <app-api-error-panel [error]="error()" />
+
+        <div class="form-actions">
+          <button mat-stroked-button type="button" (click)="compile()" [disabled]="busy() !== null">
+            <mat-icon>fact_check</mat-icon>
+            Solo compilar
+          </button>
+          <button mat-flat-button type="submit" [disabled]="busy() !== null">
+            <mat-icon>play_arrow</mat-icon>
+            Generar código
+          </button>
+        </div>
+      </form>
+      @if (busy()) {
+        <mat-progress-bar mode="indeterminate" [attr.aria-label]="busy() === 'compile' ? 'Compilando' : 'Generando código'" />
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <div class="results stack" aria-live="polite">
+    @if (compilation(); as c) {
+      <mat-card appearance="outlined">
+        <mat-card-content class="stack">
+          <div class="row">
+            <h2 class="block-title">Compilación</h2>
+            @if (c.valid) {
+              <span class="badge badge-success"><mat-icon aria-hidden="true">check_circle</mat-icon>Compila</span>
+            } @else {
+              <span class="badge badge-error"><mat-icon aria-hidden="true">cancel</mat-icon>Con errores</span>
+            }
+          </div>
+          @if (c.moduleName) {
+            <dl class="meta">
+              <div>
+                <dt>Módulo</dt>
+                <dd class="mono">{{ c.moduleName }}</dd>
+              </div>
+              <div>
+                <dt>Plantilla principal (&#64;main)</dt>
+                <dd class="mono">{{ c.mainTemplate ?? '—' }}</dd>
+              </div>
+            </dl>
+          }
+          <app-problem-list [problems]="c.problems" />
+          @if (c.valid && !c.problems.length) {
+            <p class="muted small">Sin errores ni advertencias.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+
+    @if (archive(); as zip) {
+      <mat-card appearance="outlined">
+        <mat-card-content class="stack">
+          <div class="callout success" role="status">
+            <mat-icon aria-hidden="true">folder_zip</mat-icon>
+            <p>
+              Código generado: <strong class="mono">{{ zip.name }}</strong> ({{ zip.blob.size | fileSize }}). La descarga
+              comenzó automáticamente.
+            </p>
+          </div>
+          <div class="row">
+            <button mat-stroked-button type="button" (click)="download()">
+              <mat-icon>download</mat-icon>
+              Descargar de nuevo
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    @if (!compilation() && !archive()) {
+      <div class="hint muted">
+        <mat-icon aria-hidden="true">tips_and_updates</mat-icon>
+        <p>
+          Compile la plantilla contra su metamodelo para revisar la plantilla principal y los problemas. Después genere
+          el código con un modelo de prueba: obtendrá un ZIP con los archivos del contrato.
+        </p>
+      </div>
+    }
+  </div>
+</div>

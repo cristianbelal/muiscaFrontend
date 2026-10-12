@@ -1,0 +1,51 @@
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+mat-progress-bar {
+  margin-bottom: 16px;
+}
+
+.callout {
+  margin: 4px 0 8px;
+}
+
+.submit {
+  height: 48px;
+  margin-top: 8px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.google-button {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.center {
+  text-align: center;
+}
+
+.register {
+  margin: 24px 0 0;
+}
+
+.announcement {
+  margin-bottom: 16px;
+}

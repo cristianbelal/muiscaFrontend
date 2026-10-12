@@ -1,0 +1,42 @@
+<div class="viewer">
+  @if (files().length > 1) {
+    <nav class="file-list" aria-label="Archivos generados">
+      @for (file of files(); track file.path; let i = $index) {
+        <button
+          type="button"
+          class="file"
+          [class.active]="i === selectedIndex()"
+          [attr.aria-current]="i === selectedIndex() ? 'true' : null"
+          (click)="selectedIndex.set(i)"
+          [title]="file.path"
+        >
+          <mat-icon aria-hidden="true">description</mat-icon>
+          <span>{{ file.path }}</span>
+        </button>
+      }
+    </nav>
+  }
+
+  @if (selected(); as file) {
+    <div class="content">
+      <div class="toolbar">
+        <span class="path mono">{{ file.path }}</span>
+        <span class="badge">{{ language() }}</span>
+        <span class="spacer"></span>
+        <button mat-icon-button type="button" matTooltip="Copiar" aria-label="Copiar el contenido" (click)="copy()">
+          <mat-icon>content_copy</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          type="button"
+          matTooltip="Descargar este archivo"
+          aria-label="Descargar este archivo"
+          (click)="download()"
+        >
+          <mat-icon>download</mat-icon>
+        </button>
+      </div>
+      <pre tabindex="0" [attr.aria-label]="'Contenido de ' + file.path">@if (highlighted(); as html) {<code class="hljs" [innerHTML]="html"></code>} @else {<code>{{ file.content }}</code>}</pre>
+    </div>
+  }
+</div>

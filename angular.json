@@ -27,18 +27,20 @@
               }
             ],
             "styles": [
-              "src/styles.css",
-              "node_modules/bootstrap-icons/font/bootstrap-icons.css"
-],
-            "scripts": []
+              "@angular/material/prebuilt-themes/azure-blue.css",
+              "highlight.js/styles/github.css",
+              "src/styles.css"
+            ],
+            "scripts": [],
+            "allowedCommonJsDependencies": ["highlightjs-solidity"]
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "800kB",
+                  "maximumError": "1.5MB"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -51,7 +53,13 @@
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.development.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -86,6 +94,7 @@
               }
             ],
             "styles": [
+              "@angular/material/prebuilt-themes/azure-blue.css",
               "src/styles.css"
             ],
             "scripts": []

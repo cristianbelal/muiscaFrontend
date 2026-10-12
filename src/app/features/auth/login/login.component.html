@@ -1,0 +1,72 @@
+<app-auth-layout heading="Iniciar sesión" subtitle="Ingrese para transformar sus modelos en contratos inteligentes.">
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Iniciando sesión" />
+  }
+
+  @if (publicSettings()?.announcement; as announcement) {
+    <div class="callout info announcement" role="note">
+      <mat-icon aria-hidden="true">campaign</mat-icon>
+      <p>{{ announcement }}</p>
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <mat-form-field class="full-width">
+      <mat-label>Usuario o correo</mat-label>
+      <input matInput formControlName="username" autocomplete="username" required />
+      <mat-icon matPrefix aria-hidden="true">person</mat-icon>
+      @if (form.controls.username.hasError('required')) {
+        <mat-error>Ingrese su usuario.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <mat-label>Contraseña</mat-label>
+      <input
+        matInput
+        formControlName="password"
+        [type]="hidePassword() ? 'password' : 'text'"
+        autocomplete="current-password"
+        required
+      />
+      <mat-icon matPrefix aria-hidden="true">lock</mat-icon>
+      <button
+        mat-icon-button
+        matSuffix
+        type="button"
+        (click)="hidePassword.set(!hidePassword())"
+        [attr.aria-label]="hidePassword() ? 'Mostrar contraseña' : 'Ocultar contraseña'"
+        [attr.aria-pressed]="!hidePassword()"
+      >
+        <mat-icon>{{ hidePassword() ? 'visibility' : 'visibility_off' }}</mat-icon>
+      </button>
+      @if (form.controls.password.hasError('required')) {
+        <mat-error>Ingrese su contraseña.</mat-error>
+      }
+    </mat-form-field>
+
+    @if (errorMessage()) {
+      <div class="callout error" role="alert">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        <p>{{ errorMessage() }}</p>
+      </div>
+    }
+
+    <button mat-flat-button type="submit" class="full-width submit" [disabled]="loading()">Ingresar</button>
+  </form>
+
+  <div class="divider" role="separator"><span>o</span></div>
+
+  <div #googleButton class="google-button" aria-label="Iniciar sesión con Google"></div>
+  @if (googleUnavailable()) {
+    <p class="muted small center">El inicio de sesión con Google no está disponible en este momento.</p>
+  }
+
+  @if (publicSettings()?.registrationEnabled !== false) {
+    <p class="center register">
+      ¿No tiene cuenta? <a routerLink="/registro">Cree una cuenta</a>
+    </p>
+  } @else {
+    <p class="center register muted small">El registro de cuentas nuevas está cerrado. Solicite una cuenta a un administrador.</p>
+  }
+</app-auth-layout>

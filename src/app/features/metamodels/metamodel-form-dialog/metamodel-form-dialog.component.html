@@ -1,0 +1,47 @@
+<h2 mat-dialog-title>Registrar metamodelo</h2>
+<form [formGroup]="form" (ngSubmit)="save()" novalidate>
+  <mat-dialog-content>
+    <p class="muted">
+      Un metamodelo describe los conceptos de una plataforma (por ejemplo, Hyperledger Go). Los modelos que suban
+      los usuarios deberán cumplirlo.
+    </p>
+
+    <app-file-picker
+      formControlName="ecoreFile"
+      label="Archivo del metamodelo (.ecore)"
+      [accept]="ecoreAccept"
+      hint="Su nsURI debe ser único en el sistema."
+    />
+
+    <mat-form-field class="full-width">
+      <mat-label>Nombre</mat-label>
+      <input matInput formControlName="name" [maxlength]="nameMax" required />
+      <mat-hint>Ejemplo: HyperledgerGo</mat-hint>
+      @if (form.controls.name.hasError('required')) {
+        <mat-error>El nombre es obligatorio.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <mat-label>Descripción</mat-label>
+      <textarea matInput formControlName="description" rows="2" [maxlength]="descriptionMax"></textarea>
+      <mat-hint align="end">{{ form.controls.description.value.length }} / {{ descriptionMax }}</mat-hint>
+    </mat-form-field>
+
+    <app-file-picker
+      formControlName="genmodelFile"
+      label="Genmodel (opcional)"
+      [accept]="genmodelAccept"
+      hint="Archivo .genmodel asociado, si lo tiene."
+    />
+
+    <app-api-error-panel [error]="error()" />
+  </mat-dialog-content>
+  @if (saving()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Registrando el metamodelo" />
+  }
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close [disabled]="saving()">Cancelar</button>
+    <button mat-flat-button type="submit" [disabled]="saving()">Registrar</button>
+  </mat-dialog-actions>
+</form>

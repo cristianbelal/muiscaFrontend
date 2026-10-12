@@ -1,0 +1,124 @@
+<div class="page">
+  <app-page-header
+    heading="Catálogo de transformaciones"
+    icon="auto_awesome_motion"
+    subtitle="Elija qué quiere obtener a partir de su modelo. Cada tarjeta indica qué archivo debe subir y qué recibirá."
+  >
+    @if (canManageCatalog()) {
+      <a mat-stroked-button routerLink="/transformaciones">
+        <mat-icon>settings</mat-icon>
+        Gestionar
+      </a>
+    }
+  </app-page-header>
+
+  <div class="filters">
+    <mat-form-field class="search">
+      <mat-label>Buscar</mat-label>
+      <input
+        matInput
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event)"
+        placeholder="Nombre, plataforma o descripción"
+      />
+      <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+    </mat-form-field>
+    <mat-button-toggle-group
+      [value]="output()"
+      (change)="output.set($event.value)"
+      aria-label="Filtrar por resultado"
+      hideSingleSelectionIndicator
+    >
+      <mat-button-toggle value="all">Todas</mat-button-toggle>
+      <mat-button-toggle value="code">Generan código</mat-button-toggle>
+      <mat-button-toggle value="model">Transforman modelo</mat-button-toggle>
+    </mat-button-toggle-group>
+    @if (inputMetamodel(); as input) {
+      <button mat-stroked-button type="button" (click)="inputMetamodel.set(null)" [attr.aria-label]="'Quitar filtro ' + input">
+        Reciben modelos {{ input }}
+        <mat-icon iconPositionEnd>close</mat-icon>
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Cargando el catálogo" />
+  } @else if (transformations().length === 0) {
+    <mat-card appearance="outlined">
+      <app-empty-state
+        icon="auto_awesome_motion"
+        heading="Todavía no hay transformaciones disponibles"
+        [message]="
+          canManageCatalog()
+            ? 'Defina una transformación encadenando módulos ATL y Acceleo para que aparezca aquí.'
+            : 'Un administrador debe publicar transformaciones antes de que pueda usarlas.'
+        "
+      >
+        @if (canManageCatalog()) {
+          <a mat-flat-button routerLink="/transformaciones">Definir transformación</a>
+        }
+      </app-empty-state>
+    </mat-card>
+  } @else if (filtered().length === 0) {
+    <mat-card appearance="outlined">
+      <app-empty-state icon="search_off" heading="Ninguna transformación coincide con la búsqueda">
+        <button mat-stroked-button type="button" (click)="clearFilters()">Limpiar filtros</button>
+      </app-empty-state>
+    </mat-card>
+  } @else {
+    <p class="muted small" role="status">
+      {{ filtered().length }} {{ filtered().length === 1 ? 'transformación' : 'transformaciones' }}
+    </p>
+    <div class="grid">
+      @for (transformation of filtered(); track transformation.id) {
+        <mat-card appearance="outlined" class="card">
+          <mat-card-header>
+            <mat-card-title>{{ transformation.name }}</mat-card-title>
+            @if (!transformation.published) {
+              <mat-card-subtitle>
+                <span class="badge badge-warning">
+                  <mat-icon aria-hidden="true">visibility_off</mat-icon>
+                  Borrador: solo visible para ingenieros
+                </span>
+              </mat-card-subtitle>
+            }
+          </mat-card-header>
+          <mat-card-content class="content">
+            <p class="description">{{ transformation.description || 'Sin descripción.' }}</p>
+            <app-transformation-chain [chain]="transformation" />
+            <dl class="io">
+              <div>
+                <dt>Usted sube</dt>
+                <dd>Modelo .xmi de {{ transformation.inputMetamodel.name }}</dd>
+              </div>
+              <div>
+                <dt>Usted recibe</dt>
+                <dd>
+                  @if (transformation.producesModel) {
+                    Modelo {{ transformation.outputMetamodel?.name }}
+                  }
+                  @if (transformation.producesModel && transformation.producesCode) {
+                    y
+                  }
+                  @if (transformation.producesCode) {
+                    código del contrato
+                  }
+                </dd>
+              </div>
+            </dl>
+          </mat-card-content>
+          <mat-card-actions align="end">
+            <a
+              mat-flat-button
+              [routerLink]="['/catalogo', transformation.id, 'ejecutar']"
+              [attr.aria-label]="'Usar la transformación ' + transformation.name"
+            >
+              <mat-icon>play_arrow</mat-icon>
+              Usar
+            </a>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

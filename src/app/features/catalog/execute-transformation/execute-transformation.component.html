@@ -1,0 +1,141 @@
+<div class="page page-narrow">
+  <a mat-button routerLink="/catalogo" class="back">
+    <mat-icon>arrow_back</mat-icon>
+    Volver al catálogo
+  </a>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Cargando la transformación" />
+  } @else if (notFound()) {
+    <div class="callout error" role="alert">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      <p>La transformación no existe o no está publicada.</p>
+    </div>
+  } @else if (transformation()) {
+    @let t = transformation()!;
+    <app-page-header [heading]="t.name" icon="play_circle" [subtitle]="t.description ?? ''" />
+
+    @if (!t.published) {
+      <div class="callout info draft" role="note">
+        <mat-icon aria-hidden="true">visibility_off</mat-icon>
+        <p>Esta transformación es un borrador: solo la ven ingenieros y administradores hasta que se publique.</p>
+      </div>
+    }
+
+    <mat-card appearance="outlined" class="step-card">
+      <mat-card-content class="stack">
+        <h2 class="step-title"><span class="step-number" aria-hidden="true">1</span> Qué hace esta transformación</h2>
+        <app-transformation-chain [chain]="t" [showModules]="canManageCatalog()" />
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card appearance="outlined" class="step-card">
+      <mat-card-content>
+        <h2 class="step-title"><span class="step-number" aria-hidden="true">2</span> Elija su modelo</h2>
+        <p class="muted">
+          Debe ser un modelo <strong>.xmi</strong> del metamodelo <strong>{{ t.inputMetamodel.name }}</strong>. MUISCA
+          lo verifica antes de ejecutarlo.
+        </p>
+
+        <mat-button-toggle-group
+          class="source"
+          [value]="source()"
+          (change)="setSource($event.value)"
+          aria-label="Origen del modelo"
+          hideSingleSelectionIndicator
+        >
+          <mat-button-toggle value="upload"><mat-icon>upload_file</mat-icon> Subir archivo</mat-button-toggle>
+          <mat-button-toggle value="library">
+            <mat-icon>folder_open</mat-icon> Mis modelos ({{ compatibleModels().length }})
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+
+        <form (ngSubmit)="run()" novalidate>
+          @if (source() === 'upload') {
+            <app-file-picker
+              [formControl]="inputModel"
+              label="Modelo de entrada"
+              [accept]="modelAccept"
+              hint="Arrastre aquí su modelo .xmi o selecciónelo."
+            />
+            <mat-checkbox [ngModel]="saveToLibrary()" (ngModelChange)="saveToLibrary.set($event)" name="save">
+              Guardar también este modelo en mi biblioteca
+            </mat-checkbox>
+            @if (compatibleSamples().length) {
+              <div class="samples">
+                <span class="muted small">¿No tiene un modelo? Pruebe con un ejemplo:</span>
+                @for (sample of compatibleSamples(); track sample.fileName) {
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    (click)="useSample(sample)"
+                    [disabled]="loadingSample() || running()"
+                  >
+                    <mat-icon>science</mat-icon>
+                    {{ sample.fileName }}
+                  </button>
+                }
+              </div>
+            }
+          } @else if (compatibleModels().length) {
+            <mat-form-field class="full-width">
+              <mat-label>Modelo guardado</mat-label>
+              <mat-select [formControl]="storedModelId" required>
+                @for (model of compatibleModels(); track model.id) {
+                  <mat-option [value]="model.id">{{ model.name }} · {{ model.fileName }}</mat-option>
+                }
+              </mat-select>
+              @if (storedModelId.hasError('required')) {
+                <mat-error>Elija un modelo de su biblioteca.</mat-error>
+              }
+            </mat-form-field>
+          } @else {
+            <div class="callout info" role="note">
+              <mat-icon aria-hidden="true">info</mat-icon>
+              <p>
+                No tiene modelos de {{ t.inputMetamodel.name }} guardados. Súbalo como archivo o agréguelo en
+                <a routerLink="/modelos">Mis modelos</a>.
+              </p>
+            </div>
+          }
+
+          <app-api-error-panel [error]="error()" />
+
+          <div class="form-actions">
+            @if (execution()) {
+              <button mat-button type="button" (click)="reset()">Usar otro modelo</button>
+            }
+            <button mat-flat-button type="submit" [disabled]="running()">
+              <mat-icon>play_arrow</mat-icon>
+              {{ running() ? 'Transformando…' : 'Ejecutar transformación' }}
+            </button>
+          </div>
+        </form>
+        @if (running()) {
+          @if (progress(); as current) {
+            <app-execution-progress [stage]="current.stage" [hasAtl]="t.producesModel" [hasAcceleo]="t.producesCode" />
+          } @else {
+            <mat-progress-bar mode="indeterminate" aria-label="Enviando el modelo" />
+            <p class="muted small" role="status">Validando el modelo…</p>
+          }
+        }
+      </mat-card-content>
+    </mat-card>
+
+    @if (execution(); as result) {
+      <mat-card #resultCard appearance="outlined" class="step-card result-card" aria-live="polite">
+        <mat-card-content>
+          <div class="row">
+            <h2 class="step-title"><span class="step-number" aria-hidden="true">3</span> Resultado</h2>
+            <span class="spacer"></span>
+            <a mat-button [routerLink]="['/ejecuciones', result.id]">
+              Ver en el historial
+              <mat-icon iconPositionEnd>open_in_new</mat-icon>
+            </a>
+          </div>
+          <app-execution-result [execution]="result" />
+        </mat-card-content>
+      </mat-card>
+    }
+  }
+</div>

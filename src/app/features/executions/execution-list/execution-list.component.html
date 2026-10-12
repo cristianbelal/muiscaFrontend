@@ -1,0 +1,121 @@
+<div class="page">
+  <app-page-header
+    [heading]="isAdmin() ? 'Historial de ejecuciones' : 'Mis resultados'"
+    icon="history"
+    [subtitle]="
+      isAdmin()
+        ? 'Todas las ejecuciones del sistema. Abra una para descargar sus modelos y el código generado.'
+        : 'Cada vez que ejecuta una transformación, el resultado queda aquí para que lo descargue cuando quiera.'
+    "
+  >
+    <button mat-stroked-button type="button" (click)="load()" [disabled]="loading()">
+      <mat-icon>refresh</mat-icon>
+      Actualizar
+    </button>
+    <a mat-flat-button routerLink="/catalogo">
+      <mat-icon>play_arrow</mat-icon>
+      Nueva ejecución
+    </a>
+  </app-page-header>
+
+  <mat-card appearance="outlined" class="table-card">
+    <div class="table-toolbar">
+      <mat-form-field>
+        <mat-label>Buscar</mat-label>
+        <input
+          matInput
+          [ngModel]="search()"
+          (ngModelChange)="setSearch($event)"
+          placeholder="Transformación, modelo o usuario"
+        />
+        <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+      </mat-form-field>
+      <mat-button-toggle-group
+        [value]="status()"
+        (change)="setStatus($event.value)"
+        aria-label="Filtrar por estado"
+        hideSingleSelectionIndicator
+      >
+        <mat-button-toggle value="ALL">Todas</mat-button-toggle>
+        <mat-button-toggle value="SUCCEEDED">Exitosas</mat-button-toggle>
+        <mat-button-toggle value="FAILED">Fallidas</mat-button-toggle>
+        <mat-button-toggle value="RUNNING">En curso</mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" aria-label="Cargando ejecuciones" />
+    }
+
+    @if (neverExecuted()) {
+      <app-empty-state
+        icon="history"
+        heading="No hay ejecuciones registradas"
+        message="Ejecute una transformación del catálogo y su resultado aparecerá aquí."
+      >
+        <a mat-flat-button routerLink="/catalogo">Ir al catálogo</a>
+      </app-empty-state>
+    } @else if (!loading() && total() === 0) {
+      <app-empty-state icon="search_off" heading="Ninguna ejecución coincide con los filtros" />
+    } @else if (executions().length) {
+      <div class="table-wrap">
+        <table mat-table [dataSource]="executions()" aria-label="Ejecuciones">
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef>Fecha</th>
+            <td mat-cell *matCellDef="let e">{{ e.createdAt | date: 'short' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="transformation">
+            <th mat-header-cell *matHeaderCellDef>Transformación</th>
+            <td mat-cell *matCellDef="let e">
+              <a [routerLink]="['/ejecuciones', e.id]" (click)="$event.stopPropagation()">{{ e.transformationName }}</a>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="executedBy">
+            <th mat-header-cell *matHeaderCellDef>Usuario</th>
+            <td mat-cell *matCellDef="let e">{{ e.executedBy }}</td>
+          </ng-container>
+          <ng-container matColumnDef="input">
+            <th mat-header-cell *matHeaderCellDef>Modelo de entrada</th>
+            <td mat-cell *matCellDef="let e" class="mono">{{ e.inputModelName }}</td>
+          </ng-container>
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let e">
+              <app-status-badge [status]="e.status" [stage]="e.stage" [matTooltip]="e.errorMessage ?? ''" />
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="duration">
+            <th mat-header-cell *matHeaderCellDef>Duración</th>
+            <td mat-cell *matCellDef="let e">{{ e.durationMs | duration }}</td>
+          </ng-container>
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="actions-cell"><span class="visually-hidden">Acciones</span></th>
+            <td mat-cell *matCellDef="let e" class="actions-cell">
+              <button
+                mat-icon-button
+                type="button"
+                matTooltip="Eliminar"
+                [attr.aria-label]="'Eliminar la ejecución de ' + e.transformationName"
+                [disabled]="e.status === 'RUNNING'"
+                (click)="delete(e, $event)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="columns()"></tr>
+          <tr mat-row *matRowDef="let row; columns: columns()" class="clickable-row" (click)="open(row)"></tr>
+        </table>
+      </div>
+      <mat-paginator
+        [length]="total()"
+        [pageIndex]="pageIndex()"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="[10, 25, 50]"
+        (page)="onPage($event)"
+        aria-label="Paginación de ejecuciones"
+      />
+    }
+  </mat-card>
+</div>

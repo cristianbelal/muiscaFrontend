@@ -1,0 +1,96 @@
+.viewer {
+  display: grid;
+  grid-template-columns: 1fr;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--muisca-radius);
+  overflow: hidden;
+  background: var(--mat-sys-surface);
+}
+
+@media (min-width: 900px) {
+  .viewer:has(.file-list) {
+    grid-template-columns: 260px 1fr;
+  }
+}
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 480px;
+  overflow: auto;
+  border-right: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-low);
+}
+
+.file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.file span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file mat-icon {
+  flex: none;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.file:hover {
+  background: var(--mat-sys-surface-container);
+}
+
+.file.active {
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  font-weight: 500;
+}
+
+.content {
+  min-width: 0;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px 4px 16px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+pre {
+  margin: 0;
+  padding: 16px;
+  max-height: 480px;
+  overflow: auto;
+  background: var(--muisca-code-bg);
+  font-family: 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  tab-size: 4;
+}
+
+/* El tema de highlight.js trae fondo y relleno propios; se usa el del visor. */
+.hljs {
+  padding: 0;
+  background: transparent;
+}

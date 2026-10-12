@@ -1,0 +1,23 @@
+name: CI frontend
+
+# Render despliega lab/main solo cuando este workflow termina bien (autoDeployTrigger: checksPass).
+on:
+  push:
+    branches: [main, lab]
+  pull_request:
+    branches: [main, lab]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Pruebas unitarias
+        run: npx ng test --watch=false --browsers=ChromeHeadless
+      - name: Build de producción
+        run: npm run build

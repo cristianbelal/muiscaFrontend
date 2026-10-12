@@ -1,0 +1,109 @@
+<div class="page stack">
+  @if (publicSettings()?.announcement; as announcement) {
+    <div class="callout info" role="note">
+      <mat-icon aria-hidden="true">campaign</mat-icon>
+      <p>{{ announcement }}</p>
+    </div>
+  }
+  <section class="hero">
+    <div>
+      <h1>Hola, {{ user()?.username }}</h1>
+      <p class="muted">
+        Sesión iniciada como <strong>{{ user()?.role | roleLabel }}</strong>. MUISCA convierte sus modelos en
+        contratos inteligentes aplicando transformaciones ATL y plantillas Acceleo.
+      </p>
+    </div>
+    <a mat-flat-button routerLink="/catalogo" class="hero-cta">
+      <mat-icon>play_arrow</mat-icon>
+      Empezar una transformación
+    </a>
+  </section>
+
+  <section aria-labelledby="how-title">
+    <h2 id="how-title" class="section-title">¿Cómo funciona?</h2>
+    <ol class="how">
+      <li>
+        <mat-icon aria-hidden="true">auto_awesome_motion</mat-icon>
+        <strong>1. Elija una transformación</strong>
+        <span class="muted">Cada opción del catálogo indica qué modelo recibe y qué produce.</span>
+      </li>
+      <li>
+        <mat-icon aria-hidden="true">upload_file</mat-icon>
+        <strong>2. Suba su modelo</strong>
+        <span class="muted">Un archivo .xmi conforme al metamodelo de entrada. MUISCA lo valida antes de ejecutar.</span>
+      </li>
+      <li>
+        <mat-icon aria-hidden="true">download</mat-icon>
+        <strong>3. Descargue el resultado</strong>
+        <span class="muted">Obtenga el modelo transformado y el código del contrato (Go, Java o Solidity).</span>
+      </li>
+    </ol>
+  </section>
+
+  @if (stats().length) {
+    <section aria-labelledby="stats-title">
+      <h2 id="stats-title" class="section-title">Estado del catálogo</h2>
+      <div class="stats">
+        @for (stat of stats(); track stat.label) {
+          <a class="stat" [routerLink]="stat.link">
+            <mat-icon aria-hidden="true">{{ stat.icon }}</mat-icon>
+            <span class="stat-value">{{ stat.value ?? '—' }}</span>
+            <span class="stat-label">{{ stat.label }}</span>
+          </a>
+        }
+      </div>
+    </section>
+  }
+
+  <section aria-labelledby="actions-title">
+    <h2 id="actions-title" class="section-title">Accesos rápidos</h2>
+    <div class="actions">
+      @for (action of actions(); track action.link) {
+        <a class="action" [routerLink]="action.link">
+          <mat-icon aria-hidden="true">{{ action.icon }}</mat-icon>
+          <span class="action-title">{{ action.title }}</span>
+          <span class="muted small">{{ action.description }}</span>
+        </a>
+      }
+    </div>
+  </section>
+
+  <section aria-labelledby="recent-title">
+    <div class="row">
+      <h2 id="recent-title" class="section-title">Ejecuciones recientes</h2>
+      <span class="spacer"></span>
+      @if (recent().length) {
+        <a mat-button routerLink="/ejecuciones">Ver todas</a>
+      }
+    </div>
+    <mat-card appearance="outlined">
+      @if (loadingRecent()) {
+        <mat-progress-bar mode="indeterminate" aria-label="Cargando ejecuciones" />
+      }
+      @if (!loadingRecent() && recent().length === 0) {
+        <app-empty-state
+          icon="history"
+          heading="Aún no ha ejecutado transformaciones"
+          message="Cuando ejecute una, aquí verá su resultado y podrá descargar los archivos generados."
+        >
+          <a mat-stroked-button routerLink="/catalogo">Ir al catálogo</a>
+        </app-empty-state>
+      }
+      <ul class="recent">
+        @for (execution of recent(); track execution.id) {
+          <li>
+            <a [routerLink]="['/ejecuciones', execution.id]">
+              <app-status-badge [status]="execution.status" [stage]="execution.stage" />
+              <span class="recent-name">{{ execution.transformationName }}</span>
+              <span class="muted small recent-meta">
+                {{ execution.inputModelName }} · {{ execution.createdAt | date: 'short' }} ·
+                {{ execution.durationMs | duration }}
+              </span>
+              <mat-icon aria-hidden="true">chevron_right</mat-icon>
+            </a>
+          </li>
+        }
+      </ul>
+    </mat-card>
+  </section>
+</div>

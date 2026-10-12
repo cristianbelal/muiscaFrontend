@@ -1,0 +1,122 @@
+<div class="workspace">
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="run()" novalidate>
+        <h2 class="block-title">Módulo ATL</h2>
+        <app-file-picker formControlName="atlFile" label="Módulo ATL (.atl)" [accept]="accept.atl" />
+
+        <h2 class="block-title">Metamodelos</h2>
+        <div class="pair">
+          <div>
+            <app-file-picker
+              formControlName="sourceMetamodel"
+              label="Metamodelo de origen (.ecore)"
+              [accept]="accept.ecore"
+              hint="El del modelo de entrada (IN)."
+            />
+            <app-registered-metamodel-select [control]="form.controls.sourceMetamodel" />
+          </div>
+          <div>
+            <app-file-picker
+              formControlName="targetMetamodel"
+              label="Metamodelo de destino (.ecore)"
+              [accept]="accept.ecore"
+              hint="El del modelo de salida (OUT)."
+            />
+            <app-registered-metamodel-select [control]="form.controls.targetMetamodel" />
+          </div>
+        </div>
+
+        <h2 class="block-title">Modelo de prueba</h2>
+        <app-file-picker formControlName="inputModel" label="Modelo de entrada (.xmi)" [accept]="accept.model" />
+
+        <app-api-error-panel [error]="error()" />
+
+        <div class="form-actions">
+          <button mat-stroked-button type="button" (click)="compile()" [disabled]="busy() !== null">
+            <mat-icon>fact_check</mat-icon>
+            Solo compilar
+          </button>
+          <button mat-flat-button type="submit" [disabled]="busy() !== null">
+            <mat-icon>play_arrow</mat-icon>
+            Compilar y ejecutar
+          </button>
+        </div>
+      </form>
+      @if (busy()) {
+        <mat-progress-bar
+          mode="indeterminate"
+          [attr.aria-label]="busy() === 'compile' ? 'Compilando' : 'Ejecutando la transformación'"
+        />
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <div class="results stack" aria-live="polite">
+    @if (compilation(); as c) {
+      <mat-card appearance="outlined">
+        <mat-card-content class="stack">
+          <div class="row">
+            <h2 class="block-title">Compilación</h2>
+            @if (c.valid) {
+              <span class="badge badge-success"><mat-icon aria-hidden="true">check_circle</mat-icon>Compila</span>
+            } @else {
+              <span class="badge badge-error"><mat-icon aria-hidden="true">cancel</mat-icon>Con errores</span>
+            }
+          </div>
+          @if (c.moduleName) {
+            <dl class="meta">
+              <div>
+                <dt>Módulo</dt>
+                <dd class="mono">{{ c.moduleName }}</dd>
+              </div>
+              <div>
+                <dt>Compilador</dt>
+                <dd>{{ c.compiler }}</dd>
+              </div>
+              <div>
+                <dt>Entrada</dt>
+                <dd class="mono">{{ c.inModelName }} : {{ c.sourceAlias }}</dd>
+              </div>
+              <div>
+                <dt>Salida</dt>
+                <dd class="mono">{{ c.outModelName }} : {{ c.targetAlias }}</dd>
+              </div>
+            </dl>
+          }
+          <app-problem-list [problems]="c.problems" />
+          @if (c.valid && !c.problems.length) {
+            <p class="muted small">Sin errores ni advertencias.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+
+    @if (output(); as result) {
+      <mat-card appearance="outlined">
+        <mat-card-content class="stack">
+          <div class="row">
+            <h2 class="block-title">Modelo de salida</h2>
+            <span class="spacer"></span>
+            <button mat-flat-button type="button" (click)="downloadOutput()">
+              <mat-icon>download</mat-icon>
+              Descargar
+            </button>
+          </div>
+          <app-code-viewer [files]="result.preview" />
+        </mat-card-content>
+      </mat-card>
+    }
+
+    @if (!compilation() && !output()) {
+      <div class="hint muted">
+        <mat-icon aria-hidden="true">tips_and_updates</mat-icon>
+        <p>
+          Compile primero el módulo para revisar su cabecera
+          (<code>create OUT : Destino from IN : Origen</code>) y sus problemas. Luego ejecútelo con un modelo de prueba
+          para ver el modelo resultante.
+        </p>
+      </div>
+    }
+  </div>
+</div>

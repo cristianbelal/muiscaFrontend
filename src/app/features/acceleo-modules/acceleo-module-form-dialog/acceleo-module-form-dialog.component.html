@@ -1,0 +1,80 @@
+<h2 mat-dialog-title>Registrar plantilla Acceleo</h2>
+<form [formGroup]="form" (ngSubmit)="save()" novalidate>
+  <mat-dialog-content>
+    <p class="muted">
+      Una plantilla Acceleo genera el código fuente del contrato inteligente a partir de un modelo. Se ejecuta la
+      plantilla marcada con <code>&#64;main</code>.
+    </p>
+
+    <app-file-picker formControlName="templateFile" label="Plantilla (.mtl)" [accept]="templateAccept" />
+
+    <div class="form-grid two-columns">
+      <mat-form-field>
+        <mat-label>Metamodelo de los modelos de entrada</mat-label>
+        <mat-select formControlName="metamodelId" required>
+          @for (metamodel of metamodels(); track metamodel.id) {
+            <mat-option [value]="metamodel.id">{{ metamodel.name }}</mat-option>
+          }
+        </mat-select>
+        @if (form.controls.metamodelId.hasError('required')) {
+          <mat-error>Seleccione el metamodelo.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="name" [maxlength]="nameMax" required />
+        <mat-hint>Ejemplo: Generador de código Solidity</mat-hint>
+        @if (form.controls.name.hasError('required')) {
+          <mat-error>El nombre es obligatorio.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="full">
+        <mat-label>Descripción</mat-label>
+        <textarea matInput formControlName="description" rows="2" [maxlength]="descriptionMax"></textarea>
+      </mat-form-field>
+    </div>
+
+    <div class="row verify">
+      <button mat-stroked-button type="button" (click)="verify()" [disabled]="compiling() || saving()">
+        <mat-icon>fact_check</mat-icon>
+        Verificar compilación
+      </button>
+      @if (compilation(); as c) {
+        @if (c.valid) {
+          <span class="badge badge-success"><mat-icon aria-hidden="true">check_circle</mat-icon>Compila</span>
+        } @else {
+          <span class="badge badge-error"><mat-icon aria-hidden="true">cancel</mat-icon>No compila</span>
+        }
+      }
+    </div>
+    @if (compiling()) {
+      <mat-progress-bar mode="indeterminate" aria-label="Compilando la plantilla" />
+    }
+    @if (compilation(); as c) {
+      @if (c.valid) {
+        <p class="small muted" role="status">
+          Módulo <strong>{{ c.moduleName }}</strong>, plantilla principal <strong>{{ c.mainTemplate }}</strong>.
+        </p>
+      }
+      <app-problem-list [problems]="c.problems" heading="Resultado de la compilación" />
+    }
+
+    @if (!loadingMetamodels() && metamodels().length === 0) {
+      <div class="callout info" role="note">
+        <mat-icon aria-hidden="true">info</mat-icon>
+        <p>Primero registre el metamodelo en la sección Metamodelos.</p>
+      </div>
+    }
+
+    <app-api-error-panel [error]="error()" />
+  </mat-dialog-content>
+  @if (saving()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Registrando la plantilla" />
+  }
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close [disabled]="saving()">Cancelar</button>
+    <button mat-flat-button type="submit" [disabled]="saving()">Registrar</button>
+  </mat-dialog-actions>
+</form>

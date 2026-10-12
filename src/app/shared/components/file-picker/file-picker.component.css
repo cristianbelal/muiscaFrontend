@@ -1,0 +1,79 @@
+:host {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.picker {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1.5px dashed var(--mat-sys-outline-variant);
+  border-radius: var(--muisca-radius);
+  background: var(--mat-sys-surface);
+  transition: border-color 120ms, background 120ms;
+}
+
+.picker.has-file {
+  border-style: solid;
+}
+
+.picker.dragging {
+  border-color: var(--mat-sys-primary);
+  background: var(--mat-sys-primary-container);
+}
+
+.picker.invalid {
+  border-color: var(--mat-sys-error);
+}
+
+.picker.disabled {
+  opacity: 0.6;
+}
+
+.lead {
+  color: var(--mat-sys-primary);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.label {
+  font-weight: 500;
+}
+
+.required {
+  color: var(--mat-sys-error);
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  font-size: 0.82rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.meta span {
+  display: block;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.error {
+  margin: 4px 16px 0;
+  font-size: 0.78rem;
+  color: var(--mat-sys-error);
+}
